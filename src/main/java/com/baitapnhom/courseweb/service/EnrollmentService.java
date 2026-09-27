@@ -11,6 +11,8 @@ import com.baitapnhom.courseweb.repository.EnrollmentRepository;
 import com.baitapnhom.courseweb.repository.StudentRepository;
 
 import com.baitapnhom.courseweb.dto.response.EnrollmentResponse;
+import com.baitapnhom.courseweb.exception.AppException;
+import com.baitapnhom.courseweb.exception.ErrorCode;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,11 +40,11 @@ public class EnrollmentService {
     public EnrollmentResponse enrollCourse(String studentId, String courseId) {
         // 1. Kiểm tra student tồn tại
         Student student = studentRepository.findById(studentId)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy học viên với ID: " + studentId));
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));  // ← Sửa
 
         // 2. Kiểm tra course tồn tại
         Course course = courseRepository.findById(courseId)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học với ID: " + courseId));
+            .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));  // ← Sửa (thêm error code)
 
         // 3. Kiểm tra enrollment hiện tại
         Optional<Enrollment> optionalEnrollment = enrollmentRepository
@@ -51,34 +53,29 @@ public class EnrollmentService {
         if (optionalEnrollment.isPresent()) {
             Enrollment existingEnrollment = optionalEnrollment.get();
 
-            // 4. Xử lý trạng thái cũ nếu có
             switch (existingEnrollment.getStatus()) {
-                case ACTIVE -> throw new RuntimeException("Bạn đã đăng ký khóa học này rồi!");
-                case COMPLETED -> throw new RuntimeException("Bạn đã hoàn thành khóa học này, không thể đăng ký lại!");
+                case ACTIVE -> throw new AppException(ErrorCode.ALREADY_ENROLLED);
+                case COMPLETED -> throw new AppException(ErrorCode.COURSE_COMPLETED);
                 case CANCELED -> {
-                    // 5a. Cập nhật enrollment (Re-activate)
                     existingEnrollment.setStatus(EnrollmentStatus.ACTIVE);
-                    // 6a. Lưu (UPDATE)
                     enrollmentRepository.saveAndFlush(existingEnrollment);
-                    // Trả về DTO
                     return new EnrollmentResponse(
-                            existingEnrollment.getId(),
-                            existingEnrollment.getCourse().getTitle(),
-                            existingEnrollment.getStatus().name(),
-                            existingEnrollment.getEnrollDate()
+                        existingEnrollment.getId(),
+                        existingEnrollment.getCourse().getTitle(),
+                        existingEnrollment.getStatus().name(),
+                        existingEnrollment.getEnrollDate()
                     );
                 }
             }
         }
 
-        // 5b. Tạo enrollment mới nếu chưa từng tồn tại
+        // 5b. Tạo enrollment mới
         Enrollment newEnrollment = new Enrollment(student, course, EnrollmentStatus.ACTIVE);
-        //Phải LƯU (INSERT) xuống DB trước khi convert sang DTO
         newEnrollment = enrollmentRepository.saveAndFlush(newEnrollment);
-        // 6b. Trả về thông tin
+
         return new EnrollmentResponse(
             newEnrollment.getId(),
-            newEnrollment.getCourse().getTitle(), // Hoặc getId() tùy cấu trúc DTO
+            newEnrollment.getCourse().getTitle(),
             newEnrollment.getStatus().name(),
             newEnrollment.getEnrollDate()
         );

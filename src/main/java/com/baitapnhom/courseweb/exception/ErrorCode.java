@@ -19,9 +19,15 @@ public enum ErrorCode {
     UNAUTHENTICATED(1010, "Mật khẩu không chính xác hoặc chưa được xác thực"),
 
     VIDEO_NOT_FOUND(1011, "Không tìm thấy thông tin video bài học!"),
-    ENROLLMENT_NOT_FOUND(1012, "Học viên chưa đăng ký khóa học này, không thể cập nhật tiến độ!")
+    ENROLLMENT_NOT_FOUND(1012, "Học viên chưa đăng ký khóa học này, không thể cập nhật tiến độ!"),
+    
+    COURSE_NOT_FOUND(1020, "Khóa học không tồn tại"),
+    ALREADY_ENROLLED(1013, "Bạn đã đăng ký khóa học này rồi!"),
+    COURSE_COMPLETED(1014, "Bạn đã hoàn thành khóa học này, không thể đăng ký lại!");
     ;
 
+    
+    
     private ErrorCode(int code, String message) {
         this.code = code;
         this.message = message;

@@ -12,50 +12,50 @@ import com.baitapnhom.courseweb.dto.response.ApiResponse;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-
-    // Nếu có những lỗi khác thì sẽ bắt và chạy ra message
-    @ExceptionHandler(value = Exception.class)
-    ResponseEntity<ApiResponse> handlingUncategoriedException(RuntimeException exception) {
-
-        ApiResponse apiResponse = new ApiResponse<>();
-
-        apiResponse.setCode(ErrorCode.UNCATEGORIED_EXISTED.getCode());
-        apiResponse.setMessage(ErrorCode.UNCATEGORIED_EXISTED.getMessage());
-
-        return ResponseEntity.badRequest().body(apiResponse);
-    }
-    
-    // Định nghĩa Appexception
+    // 1. PHẢI ĐẶT TRƯỚC - Xử lý AppException (cụ thể)
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
         ErrorCode errorCode = exception.getErrorCode();
         ApiResponse apiResponse = new ApiResponse<>();
-
+        
         apiResponse.setCode(errorCode.getCode());
         apiResponse.setMessage(exception.getMessage());
-
+        
         return ResponseEntity.badRequest().body(apiResponse);
     }
-    // Định nghĩa Validation
+    
+    // 2. Xử lý validation
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handlingValidation(MethodArgumentNotValidException exception) {
         String enumKey = exception.getFieldError().getDefaultMessage();
         ErrorCode errorCode = ErrorCode.valueOf(enumKey);
-
+        
         ApiResponse apiResponse = new ApiResponse<>();
-
+        
         apiResponse.setCode(errorCode.getCode());
         apiResponse.setMessage(errorCode.getMessage());
-
+        
         return ResponseEntity.badRequest().body(apiResponse);
     }
-    //  Thêm hàm bắt ngoại lệ trùng lặp database
+    
+    // 3. Xử lý unique constraint violation
     @ExceptionHandler(value = DataIntegrityViolationException.class)
     ResponseEntity<ApiResponse<?>> handlingDataIntegrityViolation(DataIntegrityViolationException exception) {
         ApiResponse<?> apiResponse = new ApiResponse<>();
         
         apiResponse.setCode(1009);
-        apiResponse.setMessage("Ban da dang ky khoa hoc nay roi (du lieu da ton tai).................................");
+        apiResponse.setMessage("Bạn đã đăng ký khóa học này rồi!");
+        
+        return ResponseEntity.badRequest().body(apiResponse);
+    }
+    
+    // 4. PHẢI ĐẶT SAU - Xử lý Exception tổng quát (catchall)
+    @ExceptionHandler(value = Exception.class)
+    ResponseEntity<ApiResponse> handlingUncategoriedException(Exception exception) {
+        ApiResponse apiResponse = new ApiResponse<>();
+        
+        apiResponse.setCode(ErrorCode.UNCATEGORIED_EXISTED.getCode());
+        apiResponse.setMessage(ErrorCode.UNCATEGORIED_EXISTED.getMessage());
         
         return ResponseEntity.badRequest().body(apiResponse);
     }
