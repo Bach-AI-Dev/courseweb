@@ -14,7 +14,7 @@ public class VideoLessons {
     @JoinColumn(name = "lesson_id",columnDefinition = "varchar(36)")
     private Lesson lesson;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String url;
 
     @Column(name = "duration_seconds", nullable = false)

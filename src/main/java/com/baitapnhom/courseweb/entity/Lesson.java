@@ -35,7 +35,7 @@ public class Lesson {
     @Column(name = "lesson_order", nullable = false)
     private Integer lessonOrder;
 
-    // Đổi từ title -> name cho khớp với CSDL
+
     @Column(nullable = false)
     private String name;
 
