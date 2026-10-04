@@ -3,7 +3,7 @@ package com.baitapnhom.courseweb.dto.response;
 public class AuthenticationResponse {
 
     private boolean authenticated;
-    // private String token;
+    private String token;
     // private UserResponse user;
 
     public AuthenticationResponse() {
@@ -11,7 +11,7 @@ public class AuthenticationResponse {
 
     public AuthenticationResponse(boolean authenticated, String token, UserResponse user) {
         this.authenticated = authenticated;
-        // this.token = token;
+        this.token = token;
         // this.user = user;
     }
 
@@ -23,13 +23,13 @@ public class AuthenticationResponse {
         this.authenticated = authenticated;
     }
 
-    // public String getToken() {
-    //     return token;
-    // }
+    public String getToken() {
+        return token;
+    }
 
-    // public void setToken(String token) {
-    //     this.token = token;
-    // }
+    public void setToken(String token) {
+        this.token = token;
+    }
 
     // public UserResponse getUser() {
     //     return user;
