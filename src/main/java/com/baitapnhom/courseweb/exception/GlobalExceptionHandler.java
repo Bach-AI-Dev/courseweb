@@ -8,16 +8,22 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import com.baitapnhom.courseweb.dto.response.ApiResponse;
 
-// Nơi tập hợp tất cả các exception
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    // 1. PHẢI ĐẶT TRƯỚC - Xử lý AppException (cụ thể)
     @ExceptionHandler(value = AppException.class)
-    ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
+    ResponseEntity<ApiResponse<?>> handlingAppException(AppException exception) {
         ErrorCode errorCode = exception.getErrorCode();
-        ApiResponse apiResponse = new ApiResponse<>();
         
+        logger.error("AppException caught: Code={}, Message={}", 
+                    errorCode.getCode(), exception.getMessage());
+        
+        ApiResponse<?> apiResponse = new ApiResponse<>();
         apiResponse.setCode(errorCode.getCode());
         apiResponse.setMessage(exception.getMessage());
         
@@ -26,12 +32,13 @@ public class GlobalExceptionHandler {
     
     // 2. Xử lý validation
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    ResponseEntity<ApiResponse> handlingValidation(MethodArgumentNotValidException exception) {
+    ResponseEntity<ApiResponse<?>> handlingValidation(MethodArgumentNotValidException exception) {
         String enumKey = exception.getFieldError().getDefaultMessage();
         ErrorCode errorCode = ErrorCode.valueOf(enumKey);
         
-        ApiResponse apiResponse = new ApiResponse<>();
+        logger.error("Validation error: {}", enumKey);
         
+        ApiResponse<?> apiResponse = new ApiResponse<>();
         apiResponse.setCode(errorCode.getCode());
         apiResponse.setMessage(errorCode.getMessage());
         
@@ -41,9 +48,10 @@ public class GlobalExceptionHandler {
     // 3. Xử lý unique constraint violation
     @ExceptionHandler(value = DataIntegrityViolationException.class)
     ResponseEntity<ApiResponse<?>> handlingDataIntegrityViolation(DataIntegrityViolationException exception) {
-        ApiResponse<?> apiResponse = new ApiResponse<>();
+        logger.error("Database constraint violation", exception);
         
-        apiResponse.setCode(1009);
+        ApiResponse<?> apiResponse = new ApiResponse<>();
+        apiResponse.setCode(ErrorCode.ALREADY_ENROLLED.getCode());
         apiResponse.setMessage("Bạn đã đăng ký khóa học này rồi!");
         
         return ResponseEntity.badRequest().body(apiResponse);
@@ -51,9 +59,10 @@ public class GlobalExceptionHandler {
     
     // 4. PHẢI ĐẶT SAU - Xử lý Exception tổng quát (catchall)
     @ExceptionHandler(value = Exception.class)
-    ResponseEntity<ApiResponse> handlingUncategoriedException(Exception exception) {
-        ApiResponse apiResponse = new ApiResponse<>();
+    ResponseEntity<ApiResponse<?>> handlingUncategoriedException(Exception exception) {
+        logger.error("Uncategorized exception", exception);
         
+        ApiResponse<?> apiResponse = new ApiResponse<>();
         apiResponse.setCode(ErrorCode.UNCATEGORIED_EXISTED.getCode());
         apiResponse.setMessage(ErrorCode.UNCATEGORIED_EXISTED.getMessage());
         
