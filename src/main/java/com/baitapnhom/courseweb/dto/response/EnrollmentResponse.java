@@ -6,14 +6,24 @@ public class EnrollmentResponse {
 
     private String id;
     private String courseTitle;
+    private String studentName;
+    private String studentEmail;
     private String status;
     private LocalDateTime enrollDate;
 
-    // Default Constructor (Bắt buộc phải có để Spring/Jackson có thể parse JSON)
     public EnrollmentResponse() {
     }
 
-    // All-args Constructor
+    public EnrollmentResponse(String id, String courseTitle, String studentName,
+                             String studentEmail, String status, LocalDateTime enrollDate) {
+        this.id = id;
+        this.courseTitle = courseTitle;
+        this.studentName = studentName;
+        this.studentEmail = studentEmail;
+        this.status = status;
+        this.enrollDate = enrollDate;
+    }
+    
     public EnrollmentResponse(String id, String courseTitle, String status, LocalDateTime enrollDate) {
         this.id = id;
         this.courseTitle = courseTitle;
@@ -21,7 +31,6 @@ public class EnrollmentResponse {
         this.enrollDate = enrollDate;
     }
 
-    // Getters
     public String getId() {
         return id;
     }
@@ -38,7 +47,14 @@ public class EnrollmentResponse {
         return enrollDate;
     }
 
-    // Setters
+    public String getStudentName() {
+        return studentName;
+    }
+
+    public String getStudentEmail() {
+        return studentEmail;
+    }
+    
     public void setId(String id) {
         this.id = id;
     }
@@ -53,5 +69,13 @@ public class EnrollmentResponse {
 
     public void setEnrollDate(LocalDateTime enrollDate) {
         this.enrollDate = enrollDate;
+    }
+
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
+    }
+
+    public void setStudentEmail(String studentEmail) {
+        this.studentEmail = studentEmail;
     }
 }
