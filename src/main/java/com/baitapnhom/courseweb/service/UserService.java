@@ -4,13 +4,16 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.baitapnhom.courseweb.dto.request.RegisterRequest;
 import com.baitapnhom.courseweb.dto.request.UserUpdateRequest;
 import com.baitapnhom.courseweb.dto.response.UserResponse;
+import com.baitapnhom.courseweb.entity.Student;
 import com.baitapnhom.courseweb.entity.User;
 import com.baitapnhom.courseweb.enums.Role;
 import com.baitapnhom.courseweb.exception.AppException;
 import com.baitapnhom.courseweb.exception.ErrorCode;
+import com.baitapnhom.courseweb.repository.StudentRepository;
 import com.baitapnhom.courseweb.repository.UserRepository;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,8 +26,12 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Transactional
     public User register(RegisterRequest request) {
 
         User user = new User();
@@ -40,14 +47,22 @@ public class UserService {
         // PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-
-
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
-        user.setRole(Role.STUDENT);
-        return userRepository.save(user);
+        
+        Role role = request.getRole() != null ? request.getRole() : Role.STUDENT;
+        user.setRole(role);
+        user = userRepository.save(user);
+
+        // Khi đăng ký User, tự động tạo luôn bản ghi trong bảng students tương ứng với ID của User
+        if (role == Role.STUDENT) {
+            Student student = new Student(user);
+            studentRepository.save(student);
+        }
+
+        return user;
     }
 
     public List<User> getUsers() {
@@ -71,7 +86,11 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public void deleteUser(String id) {
+        if (studentRepository.existsById(id)) {
+            studentRepository.deleteById(id);
+        }
         userRepository.deleteById(id);
     }
 
