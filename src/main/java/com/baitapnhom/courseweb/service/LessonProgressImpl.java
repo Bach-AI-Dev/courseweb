@@ -1,15 +1,13 @@
 package com.baitapnhom.courseweb.service;
 
 import com.baitapnhom.courseweb.dto.request.LessonProgressRequest;
+import com.baitapnhom.courseweb.dto.response.CourseProgressResponse;
 import com.baitapnhom.courseweb.dto.response.LessonProgressResponse;
 import com.baitapnhom.courseweb.entity.LessonProgress;
 import com.baitapnhom.courseweb.entity.VideoLessons;
 import com.baitapnhom.courseweb.exception.AppException;
 import com.baitapnhom.courseweb.exception.ErrorCode;
-import com.baitapnhom.courseweb.repository.EnrollmentRepository; // ✅ Import thêm Enrollment
-import com.baitapnhom.courseweb.repository.LessonProgressRepository;
-import com.baitapnhom.courseweb.repository.StudentRepository;
-import com.baitapnhom.courseweb.repository.VideoLessonsRepository;
+import com.baitapnhom.courseweb.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -23,16 +21,17 @@ public class LessonProgressImpl implements ILessonProgressService {
     private final VideoLessonsRepository videoRepository;
     private final StudentRepository studentRepository;
     private final EnrollmentRepository enrollmentRepository; //  Tiêm thêm để check đăng ký
-
+    private final LessonRepository lessonRepository;
 
     public LessonProgressImpl(LessonProgressRepository progressRepository,
                               VideoLessonsRepository videoRepository,
                               StudentRepository studentRepository,
-                              EnrollmentRepository enrollmentRepository) {
+                              EnrollmentRepository enrollmentRepository,LessonRepository lessonRepository) {
         this.progressRepository = progressRepository;
         this.videoRepository = videoRepository;
         this.studentRepository = studentRepository;
         this.enrollmentRepository = enrollmentRepository;
+        this.lessonRepository = lessonRepository;
     }
 
     @Override
@@ -118,7 +117,71 @@ public class LessonProgressImpl implements ILessonProgressService {
         responseDto.setWatchedTimeSeconds(savedProgress.getWatchedTimeSeconds());
         responseDto.setIsCompleted(savedProgress.getIsCompleted());
         responseDto.setCompletionPercentage(percentCompleted);
+        responseDto.setLastPosition(savedProgress.getLastPosition());
 
         return responseDto;
+    }
+
+    @Override
+    public CourseProgressResponse getCourseProgress(String courseId, String studentId) {
+
+        // 1. Lấy tổng số bài học của khóa
+
+        int totalLessons = lessonRepository.countByCourseId(courseId);
+
+        // Cú chốt hạ số 4: Nếu khóa học chưa có bài nào -> Tiến độ là 0%
+        if (totalLessons == 0) {
+            CourseProgressResponse emptyResponse = new CourseProgressResponse();
+            emptyResponse.setCourseId(courseId);
+            emptyResponse.setStudentId(studentId);
+            emptyResponse.setTotalLessons(0);
+            emptyResponse.setCompletedLessons(0);
+            emptyResponse.setProgressPercentage(0);
+            return emptyResponse;
+        }
+
+        // 2. Đếm số bài mà học viên này đã hoàn thành (isCompleted = true)
+        int completedLessons = progressRepository.countByStudentStudentIdAndVideoLessonLessonCourseIdAndIsCompletedTrue(studentId, courseId);
+
+        // 3. Tính toán phần trăm (ép kiểu double để không bị làm tròn thành 0 khi chia)
+        double percentage = (double) completedLessons / totalLessons * 100;
+        int progressPercentage = (int) Math.round(percentage);
+
+        // 4. Trả về kết quả
+        CourseProgressResponse response = new CourseProgressResponse();
+        response.setCourseId(courseId);
+        response.setStudentId(studentId);
+        response.setTotalLessons(totalLessons);
+        response.setCompletedLessons(completedLessons);
+        response.setProgressPercentage(progressPercentage);
+
+        return response;
+    }
+
+    @Override
+    public LessonProgressResponse getLessonProgress(String lessonId, String studentId) {
+
+        LessonProgressResponse response = new LessonProgressResponse();
+        response.setLessonId(lessonId);
+        response.setStudentId(studentId);
+
+        Optional<LessonProgress> progressOpt = progressRepository.findByVideoLesson_LessonIdAndStudent_StudentId(lessonId, studentId);
+
+        if (progressOpt.isPresent()) {
+            LessonProgress progress = progressOpt.get();
+            response.setWatchedTimeSeconds(progress.getWatchedTimeSeconds());
+            response.setLastPosition(progress.getLastPosition());
+            response.setIsCompleted(progress.getIsCompleted()); // Tùy cách đặt tên get của bạn
+
+            // Bạn có thể bỏ qua setCompletionPercentage (nó sẽ mặc định là 0),
+            // vì Frontend gọi API này chủ yếu để lấy lastPosition tua video.
+        } else {
+            response.setWatchedTimeSeconds(0);
+            response.setLastPosition(0);
+            response.setIsCompleted(false);
+            response.setCompletionPercentage(0);
+        }
+
+        return response;
     }
 }

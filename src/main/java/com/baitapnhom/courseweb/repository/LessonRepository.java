@@ -10,4 +10,6 @@ import java.util.List;
 public interface LessonRepository extends JpaRepository<Lesson, String> {
     // Tìm tất cả bài học của một khóa học, sắp xếp theo thứ tự (lessonOrder) Tăng dần (Ascending)
     List<Lesson> findByCourseIdOrderByLessonOrderAsc(String courseId);
+    // Đếm xem khóa học này có tổng cộng bao nhiêu bài
+    int countByCourseId(String courseId);
 }

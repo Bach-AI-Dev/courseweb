@@ -6,7 +6,9 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "lesson_progress")
+@Table(name = "lesson_progress" , uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"student_id", "lesson_id"}) // Tên cột trong Database
+})
 public class LessonProgress {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

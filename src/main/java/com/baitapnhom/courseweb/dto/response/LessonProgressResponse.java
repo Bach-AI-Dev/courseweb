@@ -3,7 +3,11 @@ package com.baitapnhom.courseweb.dto.response;
 
 public class LessonProgressResponse {
     private String studentId;
-
+    private int lastPosition;
+    private String lessonId;
+    private Integer watchedTimeSeconds;
+    private Boolean isCompleted;
+    private Integer completionPercentage;
     public String getStudentId() {
         return studentId;
     }
@@ -43,8 +47,12 @@ public class LessonProgressResponse {
     public void setCompletionPercentage(Integer completionPercentage) {
         this.completionPercentage = completionPercentage;
     }
-    private String lessonId;
-    private Integer watchedTimeSeconds;
-    private Boolean isCompleted;
-    private Integer completionPercentage;
+
+    public int getLastPosition() {
+        return lastPosition;
+    }
+
+    public void setLastPosition(int lastPosition) {
+        this.lastPosition = lastPosition;
+    }
 }
