@@ -49,9 +49,9 @@ public class User {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         this.updatedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        if (this.role == null) {
-            this.role = Role.STUDENT;
-        }
+        // if (this.role == null) {
+        //     this.role = Role.STUDENT;
+        // }
     }
 
     @PreUpdate
