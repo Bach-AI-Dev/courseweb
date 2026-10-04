@@ -2,7 +2,7 @@ package com.baitapnhom.courseweb.dto.response;
 
 import java.time.LocalDateTime;
 
-import com.baitapnhom.courseweb.enums.Role;
+// import com.baitapnhom.courseweb.enums.Role;
 
 public class UserResponse {
 
@@ -11,14 +11,14 @@ public class UserResponse {
     private String email;
     private String fullName;
     private String phone;
-    private Role role;
+    private String role;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public UserResponse() {
     }
 
-    public UserResponse(String id, String username, String email, String fullName, String phone, Role role,
+    public UserResponse(String id, String username, String email, String fullName, String phone, String role,
             LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.username = username;
@@ -70,11 +70,11 @@ public class UserResponse {
         this.phone = phone;
     }
 
-    public Role getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(String role) {
         this.role = role;
     }
 
