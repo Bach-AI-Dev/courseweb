@@ -30,7 +30,8 @@ public enum ErrorCode {
     UNAUTHENTICATED(1010, "Mật khẩu không chính xác hoặc chưa được xác thực"),
     
     UNAUTHORIZED(1011, "Bạn không có quyền truy cập tài nguyên này"),
-
+    UNAUTHORIZED_ROLE_CREATION(1012, "Bạn không thể tạo tài khoản này"),
+        
     // ============== VIDEO & CONTENT (1020-1099) ==============
     VIDEO_NOT_FOUND(1021, "Không tìm thấy thông tin video bài học"),
     
