@@ -52,11 +52,19 @@ public class UserService {
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
 
-        Role role = request.getRole() != null ? request.getRole() : Role.STUDENT;
+        // CHẶN TẠO TÀI KHOẢN ADMIN TỪ API ĐĂNG KÝ
+        if (request.getRole() == Role.ADMIN || request.getRole() == Role.TEACHER) {
+            // Bạn có thể tạo thêm ErrorCode.INVALID_ROLE trong file ErrorCode.java để dùng
+            throw new AppException(ErrorCode.UNAUTHORIZED_ROLE_CREATION);
+
+        }
+
+        Role role = Role.STUDENT;
         user.setRole(role);
         user = userRepository.save(user);
 
-        // Khi đăng ký User, tự động tạo luôn bản ghi trong bảng students tương ứng với ID của User
+        // Khi đăng ký User, tự động tạo luôn bản ghi trong bảng students tương ứng với
+        // ID của User
         if (role == Role.STUDENT) {
             Student student = new Student(user);
             studentRepository.save(student);
