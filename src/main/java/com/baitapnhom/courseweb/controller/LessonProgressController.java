@@ -3,10 +3,13 @@ package com.baitapnhom.courseweb.controller;
 import com.baitapnhom.courseweb.dto.request.LessonProgressRequest;
 import com.baitapnhom.courseweb.dto.response.CourseProgressResponse;
 import com.baitapnhom.courseweb.dto.response.LessonProgressResponse;
+import com.baitapnhom.courseweb.entity.User;
 import com.baitapnhom.courseweb.exception.AppException;
 import com.baitapnhom.courseweb.exception.ErrorCode;
+import com.baitapnhom.courseweb.repository.UserRepository;
 import com.baitapnhom.courseweb.service.ILessonProgressService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +20,8 @@ import org.springframework.web.bind.annotation.*;
 public class LessonProgressController {
     
     private final ILessonProgressService progressService;
-
+    @Autowired
+    private UserRepository userRepository;
     // Sử dụng Constructor Injection an toàn thay cho @RequiredArgsConstructor
     public LessonProgressController(ILessonProgressService progressService) {
         this.progressService = progressService;
@@ -25,14 +29,19 @@ public class LessonProgressController {
     private String getLoggedInStudentId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Kiểm tra xem request có token hợp lệ không (loại trừ trường hợp người dùng ẩn danh)
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            // Bạn có thể đổi ErrorCode.UNAUTHENTICATED thành mã lỗi tương ứng trong Enum của bạn
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        // Trả về StudentId / Username lưu trong Token
-        return authentication.getName();
+        // 1. Lấy Username từ token (vd: "HaiNammm")
+        String username = authentication.getName();
+
+        // 2. Chọc vào DB để lấy ra ID thực sự (UUID) của Username này
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        // 3. Trả về UUID chuẩn xác (vd: "eb15546a-2c29...")
+        return user.getId();
     }
     @PostMapping("/update")
     public ResponseEntity<LessonProgressResponse> updateProgress(@Valid @RequestBody LessonProgressRequest request) {

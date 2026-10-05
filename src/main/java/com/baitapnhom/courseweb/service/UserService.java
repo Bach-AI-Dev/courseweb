@@ -51,12 +51,20 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
-        
-        Role role = request.getRole() != null ? request.getRole() : Role.STUDENT;
+
+        // CHẶN TẠO TÀI KHOẢN ADMIN TỪ API ĐĂNG KÝ
+        if (request.getRole() == Role.ADMIN || request.getRole() == Role.TEACHER) {
+            // Bạn có thể tạo thêm ErrorCode.INVALID_ROLE trong file ErrorCode.java để dùng
+            throw new AppException(ErrorCode.UNAUTHORIZED_ROLE_CREATION);
+
+        }
+
+        Role role = Role.STUDENT;
         user.setRole(role);
         user = userRepository.save(user);
 
-        // Khi đăng ký User, tự động tạo luôn bản ghi trong bảng students tương ứng với ID của User
+        // Khi đăng ký User, tự động tạo luôn bản ghi trong bảng students tương ứng với
+        // ID của User
         if (role == Role.STUDENT) {
             Student student = new Student(user);
             studentRepository.save(student);
@@ -96,7 +104,7 @@ public class UserService {
 
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
-        String username = context.getAuthentication().getName(); 
+        String username = context.getAuthentication().getName();
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -107,11 +115,11 @@ public class UserService {
         response.setFullName(user.getFullName());
         response.setEmail(user.getEmail());
         response.setPhone(user.getPhone());
-        
+
         if (user.getRole() != null) {
             response.setRole(user.getRole().name());
         }
-        
+
         return response;
     }
 
