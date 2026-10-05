@@ -63,18 +63,6 @@ public class UserService {
         }
 
         return user;
-
-        Role role = request.getRole() != null ? request.getRole() : Role.STUDENT;
-        user.setRole(role);
-        user = userRepository.save(user);
-
-        // Khi đăng ký User, tự động tạo luôn bản ghi trong bảng students tương ứng với ID của User
-        if (role == Role.STUDENT) {
-            Student student = new Student(user);
-            studentRepository.save(student);
-        }
-
-        return user;
     }
 
     public List<User> getUsers() {
