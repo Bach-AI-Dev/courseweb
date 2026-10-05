@@ -11,6 +11,7 @@ import com.baitapnhom.courseweb.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime; // THÊM DÒNG NÀY ĐỂ IMPORT THỜI GIAN
 import java.util.Optional;
 
 @Service
@@ -20,7 +21,7 @@ public class LessonProgressImpl implements ILessonProgressService {
     private final LessonProgressRepository progressRepository;
     private final VideoLessonsRepository videoRepository;
     private final StudentRepository studentRepository;
-    private final EnrollmentRepository enrollmentRepository; //  Tiêm thêm để check đăng ký
+    private final EnrollmentRepository enrollmentRepository;
     private final LessonRepository lessonRepository;
 
     public LessonProgressImpl(LessonProgressRepository progressRepository,
@@ -45,18 +46,14 @@ public class LessonProgressImpl implements ILessonProgressService {
 
         VideoLessons video = videoRequest.get();
 
-        //  1. KIỂM TRA ENROLLMENT & TÍNH HỢP LỆ CỦA LESSON
-        // Lưu ý: Sửa '.getCourse()' thành phương thức thực tế trong entity VideoLessons của bạn
         String courseId = video.getLesson().getCourse().getId();
 
-        // Sửa lại tên hàm cho khớp với bên EnrollmentRepository
         boolean isEnrolled = enrollmentRepository.existsByStudentStudentIdAndCourseId(request.getStudentId(), courseId);
         if(!isEnrolled) {
             throw new AppException(ErrorCode.ENROLLMENT_NOT_FOUND);
         }
 
         int durationVideo = video.getDurationSeconds();
-        //  2. FIX LỖI TOÁN HỌC (CHIA CHO 0)
         if (durationVideo <= 0) {
             durationVideo = 1;
         }
@@ -66,7 +63,6 @@ public class LessonProgressImpl implements ILessonProgressService {
         int tolerance = 2;
         LessonProgress savedProgress;
 
-        //  3. CHẶN LÙI TIẾN ĐỘ (Chặn trường hợp client gửi timeDelta âm)
         int validTimeDelta = Math.max(request.getTimeDelta(), 0);
 
         if(progressRequest.isPresent()){
@@ -83,6 +79,9 @@ public class LessonProgressImpl implements ILessonProgressService {
 
             progress.setWatchedTimeSeconds(newWatchedTimeSeconds);
             progress.setLastPosition(newLastPosition);
+
+            // THÊM DÒNG NÀY: Cập nhật thời gian xem lần cuối (cho tiến độ cũ)
+            progress.setLastWatchedAt(LocalDateTime.now());
 
             savedProgress = progressRepository.save(progress);
         }
@@ -105,6 +104,9 @@ public class LessonProgressImpl implements ILessonProgressService {
                 newProgress.setIsCompleted(false);
             }
 
+            // THÊM DÒNG NÀY: Cập nhật thời gian xem lần cuối (cho tiến độ mới tạo)
+            newProgress.setLastWatchedAt(LocalDateTime.now());
+
             savedProgress = progressRepository.save(newProgress);
         }
 
@@ -124,12 +126,8 @@ public class LessonProgressImpl implements ILessonProgressService {
 
     @Override
     public CourseProgressResponse getCourseProgress(String courseId, String studentId) {
-
-        // 1. Lấy tổng số bài học của khóa
-
         int totalLessons = lessonRepository.countByCourseId(courseId);
 
-        // Cú chốt hạ số 4: Nếu khóa học chưa có bài nào -> Tiến độ là 0%
         if (totalLessons == 0) {
             CourseProgressResponse emptyResponse = new CourseProgressResponse();
             emptyResponse.setCourseId(courseId);
@@ -140,14 +138,11 @@ public class LessonProgressImpl implements ILessonProgressService {
             return emptyResponse;
         }
 
-        // 2. Đếm số bài mà học viên này đã hoàn thành (isCompleted = true)
         int completedLessons = progressRepository.countByStudentStudentIdAndVideoLessonLessonCourseIdAndIsCompletedTrue(studentId, courseId);
 
-        // 3. Tính toán phần trăm (ép kiểu double để không bị làm tròn thành 0 khi chia)
         double percentage = (double) completedLessons / totalLessons * 100;
         int progressPercentage = (int) Math.round(percentage);
 
-        // 4. Trả về kết quả
         CourseProgressResponse response = new CourseProgressResponse();
         response.setCourseId(courseId);
         response.setStudentId(studentId);
@@ -171,10 +166,8 @@ public class LessonProgressImpl implements ILessonProgressService {
             LessonProgress progress = progressOpt.get();
             response.setWatchedTimeSeconds(progress.getWatchedTimeSeconds());
             response.setLastPosition(progress.getLastPosition());
-            response.setIsCompleted(progress.getIsCompleted()); // Tùy cách đặt tên get của bạn
+            response.setIsCompleted(progress.getIsCompleted());
 
-            // Bạn có thể bỏ qua setCompletionPercentage (nó sẽ mặc định là 0),
-            // vì Frontend gọi API này chủ yếu để lấy lastPosition tua video.
         } else {
             response.setWatchedTimeSeconds(0);
             response.setLastPosition(0);

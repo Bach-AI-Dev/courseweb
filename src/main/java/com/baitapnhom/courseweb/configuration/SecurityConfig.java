@@ -24,7 +24,7 @@ import com.baitapnhom.courseweb.enums.Role;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final String[] PUBLIC_ENDPOINTS = { "/api/auth/register", "/api/auth/login", "/api/auth/introspect" };
+    private final String[] PUBLIC_ENDPOINTS = { "/api/auth/register", "/api/auth/login", "/api/auth/introspect","/api/v1/progress/update","/api/courses/{courseId}/enroll" };
 
     @Value("${jwt.signerKey}")
     private String signerKey;

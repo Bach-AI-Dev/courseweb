@@ -48,7 +48,8 @@ public enum ErrorCode {
     CANNOT_CANCEL_COMPLETED(1203, "Không thể hủy khóa học đã hoàn thành"),
     INVALID_ENROLLMENT_ID(1204, "Enrollment ID không hợp lệ"),
     INVALID_STUDENT_ID(1205, "Student ID không được để trống"),
-    INVALID_PAGE_SIZE(1206, "Kích thước trang không hợp lệ");
+    INVALID_PAGE_SIZE(1206, "Kích thước trang không hợp lệ"),
+    USER_NOT_FOUND(4044, "Không tìm thấy hồ sơ học viên tương ứng với tài khoản này");
     
     private final int code;
     private final String message;
