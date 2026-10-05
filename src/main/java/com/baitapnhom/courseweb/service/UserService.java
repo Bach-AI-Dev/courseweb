@@ -115,7 +115,8 @@ public class UserService {
         response.setFullName(user.getFullName());
         response.setEmail(user.getEmail());
         response.setPhone(user.getPhone());
-
+        response.setCreatedAt(user.getCreatedAt());
+        response.setUpdatedAt(user.getUpdatedAt());
         if (user.getRole() != null) {
             response.setRole(user.getRole().name());
         }
