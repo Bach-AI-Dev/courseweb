@@ -12,3 +12,4 @@ public interface ILessonProgressService {
 
     LessonProgressResponse getLessonProgress(String lessonId, String studentId);
 }
+

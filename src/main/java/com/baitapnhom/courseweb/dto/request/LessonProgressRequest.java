@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 public class LessonProgressRequest {
-    @NotNull(message = "studentId không được để trống")
+
     private String studentId;
 
     public String getStudentId() {

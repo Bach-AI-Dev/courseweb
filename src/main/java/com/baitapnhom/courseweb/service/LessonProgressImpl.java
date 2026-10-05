@@ -27,7 +27,7 @@ public class LessonProgressImpl implements ILessonProgressService {
     public LessonProgressImpl(LessonProgressRepository progressRepository,
                               VideoLessonsRepository videoRepository,
                               StudentRepository studentRepository,
-                              EnrollmentRepository enrollmentRepository,LessonRepository lessonRepository) {
+                              EnrollmentRepository enrollmentRepository, LessonRepository lessonRepository) {
         this.progressRepository = progressRepository;
         this.videoRepository = videoRepository;
         this.studentRepository = studentRepository;
@@ -36,11 +36,11 @@ public class LessonProgressImpl implements ILessonProgressService {
     }
 
     @Override
-    public LessonProgressResponse updateProgress(LessonProgressRequest request){
+    public LessonProgressResponse updateProgress(LessonProgressRequest request) {
 
         Optional<VideoLessons> videoRequest = videoRepository.findById(request.getLessonId());
 
-        if(videoRequest.isEmpty()) {
+        if (videoRequest.isEmpty()) {
             throw new AppException(ErrorCode.VIDEO_NOT_FOUND);
         }
 
@@ -49,7 +49,7 @@ public class LessonProgressImpl implements ILessonProgressService {
         String courseId = video.getLesson().getCourse().getId();
 
         boolean isEnrolled = enrollmentRepository.existsByStudentStudentIdAndCourseId(request.getStudentId(), courseId);
-        if(!isEnrolled) {
+        if (!isEnrolled) {
             throw new AppException(ErrorCode.ENROLLMENT_NOT_FOUND);
         }
 
@@ -65,7 +65,7 @@ public class LessonProgressImpl implements ILessonProgressService {
 
         int validTimeDelta = Math.max(request.getTimeDelta(), 0);
 
-        if(progressRequest.isPresent()){
+        if (progressRequest.isPresent()) {
             LessonProgress progress = progressRequest.get();
 
             int newWatchedTimeSeconds = progress.getWatchedTimeSeconds() + validTimeDelta;
@@ -73,7 +73,7 @@ public class LessonProgressImpl implements ILessonProgressService {
 
             int newLastPosition = Math.min(request.getLastPosition(), durationVideo);
 
-            if(newWatchedTimeSeconds >= (durationVideo - tolerance) && !progress.getIsCompleted() && newLastPosition >= (durationVideo-tolerance)){
+            if (newWatchedTimeSeconds >= (durationVideo - tolerance) && !progress.getIsCompleted() && newLastPosition >= (durationVideo - tolerance)) {
                 progress.setIsCompleted(true);
             }
 
@@ -84,8 +84,7 @@ public class LessonProgressImpl implements ILessonProgressService {
             progress.setLastWatchedAt(LocalDateTime.now());
 
             savedProgress = progressRepository.save(progress);
-        }
-        else{
+        } else {
             LessonProgress newProgress = new LessonProgress();
 
             newProgress.setVideoLesson(videoRepository.getReferenceById(request.getLessonId()));
@@ -97,10 +96,9 @@ public class LessonProgressImpl implements ILessonProgressService {
             int newLastPosition = Math.min(request.getLastPosition(), durationVideo);
             newProgress.setLastPosition(newLastPosition);
 
-            if(initalTime >= (durationVideo - tolerance) && newLastPosition >= (durationVideo - tolerance)){
+            if (initalTime >= (durationVideo - tolerance) && newLastPosition >= (durationVideo - tolerance)) {
                 newProgress.setIsCompleted(true);
-            }
-            else{
+            } else {
                 newProgress.setIsCompleted(false);
             }
 
@@ -160,6 +158,10 @@ public class LessonProgressImpl implements ILessonProgressService {
         response.setLessonId(lessonId);
         response.setStudentId(studentId);
 
+        // Lấy thông tin video để có thời lượng (duration) tính phần trăm
+        VideoLessons video = videoRepository.findById(lessonId).orElse(null);
+        int durationVideo = (video != null && video.getDurationSeconds() > 0) ? video.getDurationSeconds() : 1;
+
         Optional<LessonProgress> progressOpt = progressRepository.findByVideoLesson_LessonIdAndStudent_StudentId(lessonId, studentId);
 
         if (progressOpt.isPresent()) {
@@ -167,6 +169,10 @@ public class LessonProgressImpl implements ILessonProgressService {
             response.setWatchedTimeSeconds(progress.getWatchedTimeSeconds());
             response.setLastPosition(progress.getLastPosition());
             response.setIsCompleted(progress.getIsCompleted());
+
+            // TÍNH PHẦN TRĂM HOÀN THÀNH CHO TRƯỜNG HỢP ĐÃ CÓ TIẾN ĐỘ
+            double percentage = (double) progress.getWatchedTimeSeconds() / durationVideo * 100;
+            response.setCompletionPercentage((int) Math.round(percentage));
 
         } else {
             response.setWatchedTimeSeconds(0);
