@@ -1,4 +1,6 @@
 package com.baitapnhom.courseweb.entity;
+
+import com.baitapnhom.courseweb.enums.CourseStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,7 +31,9 @@ public class Course {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private CourseStatus status;
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
@@ -64,8 +68,8 @@ public class Course {
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public CourseStatus getStatus() { return status; }
+    public void setStatus(CourseStatus status) { this.status = status; }
 
     public Category getCategory() { return category; }
     public void setCategory(Category category) { this.category = category; }

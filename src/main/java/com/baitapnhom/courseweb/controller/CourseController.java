@@ -1,10 +1,12 @@
 package com.baitapnhom.courseweb.controller;
 
 import com.baitapnhom.courseweb.dto.request.CourseRequest;
+import com.baitapnhom.courseweb.dto.response.ApiResponse;
 import com.baitapnhom.courseweb.dto.response.CourseResponse;
 import com.baitapnhom.courseweb.service.CourseService;
-import com.baitapnhom.courseweb.service.LessonService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,37 +18,47 @@ public class CourseController {
     @Autowired
     private CourseService courseService;
 
-    @Autowired
-    private LessonService lessonService;
-
-    // 1. Tạo khóa học mới (POST)
+    // 1. Tạo mới: Chỉ TEACHER hoặc ADMIN
     @PostMapping
-    public CourseResponse createCourse(@RequestBody CourseRequest request) {
-        return courseService.createRequest(request);
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ApiResponse<CourseResponse> createCourse(@RequestBody @Valid CourseRequest request) {
+        ApiResponse<CourseResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(courseService.createCourse(request));
+        return apiResponse;
     }
 
-    // 2. Lấy danh sách tất cả khóa học (GET)
+    // 2. Lấy danh sách: Mọi người đều xem được
     @GetMapping
-    public List<CourseResponse> getAllCourses() {
-        return courseService.getAllCourses();
+    public ApiResponse<List<CourseResponse>> getAllCourses() {
+        ApiResponse<List<CourseResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(courseService.getAllCourses());
+        return apiResponse;
     }
 
-    // 3. Lấy thông tin chi tiết 1 khóa học theo ID (GET)
+    // 3. Lấy chi tiết: Mọi người đều xem được
     @GetMapping("/{id}")
-    public CourseResponse getCourseById(@PathVariable String id) {
-        return courseService.getCourseById(id);
+    public ApiResponse<CourseResponse> getCourseById(@PathVariable String id) {
+        ApiResponse<CourseResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(courseService.getCourseById(id));
+        return apiResponse;
     }
 
-    // 4. Cập nhật thông tin khóa học (PUT)
+    // 4. Sửa: Chỉ TEACHER hoặc ADMIN
     @PutMapping("/{id}")
-    public CourseResponse updateCourse(@PathVariable String id, @RequestBody CourseRequest request) {
-        return courseService.updateCourse(id, request);
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ApiResponse<CourseResponse> updateCourse(@PathVariable String id, @RequestBody @Valid CourseRequest request) {
+        ApiResponse<CourseResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(courseService.updateCourse(id, request));
+        return apiResponse;
     }
 
-    // 5. Xóa khóa học theo ID (DELETE)
+    // 5. Xóa: Chỉ ADMIN hoặc TEACHER
     @DeleteMapping("/{id}")
-    public String deleteCourse(@PathVariable String id) {
-        return courseService.deleteCourse(id) ;
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+    public ApiResponse<String> deleteCourse(@PathVariable String id) {
+        courseService.deleteCourse(id);
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setResult("Xóa khóa học thành công!");
+        return apiResponse;
     }
 }
-

@@ -1,11 +1,13 @@
 package com.baitapnhom.courseweb.service;
 
 import com.baitapnhom.courseweb.dto.request.CategoryRequest;
+import com.baitapnhom.courseweb.dto.response.CategoryResponse;
 import com.baitapnhom.courseweb.entity.Category;
 import com.baitapnhom.courseweb.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,33 +16,73 @@ public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public Category createRequest(CategoryRequest request) {
+    // Helper map từ Entity sang Response DTO (Không dùng Lombok / MapStruct)
+    private CategoryResponse toResponse(Category category) {
+        return new CategoryResponse(
+                category.getId(),
+                category.getName(),
+                category.getDescription()
+        );
+    }
+
+    // 1. Tạo Category mới
+    public CategoryResponse createCategory(CategoryRequest request) {
+        if (categoryRepository.existsByName(request.getName())) {
+            throw new RuntimeException("Tên danh mục đã tồn tại!");
+        }
+
         Category category = new Category();
         category.setName(request.getName());
         category.setDescription(request.getDescription());
-        return categoryRepository.save(category);
+
+        Category savedCategory = categoryRepository.save(category);
+        return toResponse(savedCategory);
     }
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
-    }
-
-    public Category getCategoryById(String id) {
-        return categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("KHÔNG TÌM THẤY Category VỚI ID: " + id));
-    }
-
-    public String deleteCategory(String id) {
-        categoryRepository.deleteById(id);
-        return "Category ĐÃ ĐƯỢC XOÁ THÀNH CÔNG!";
-    }
-
-    public Category updateCategory(String id, CategoryRequest request) {
-        Category category = getCategoryById(id);
-        category.setName(request.getName());
-        if (request.getDescription() != null) {
-            category.setDescription(request.getDescription());
+    // 2. Lấy toàn bộ danh mục
+    public List<CategoryResponse> getAllCategories() {
+        List<Category> categories = categoryRepository.findAll();
+        List<CategoryResponse> responses = new ArrayList<>();
+        for (Category category : categories) {
+            responses.add(toResponse(category));
         }
-        return categoryRepository.save(category);
+        return responses;
+    }
+
+    // 3. Lấy theo ID
+    public CategoryResponse getCategoryById(String id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với ID: " + id));
+        return toResponse(category);
+    }
+
+    // 4. Cập nhật Category
+    public CategoryResponse updateCategory(String id, CategoryRequest request) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với ID: " + id));
+
+        if (categoryRepository.existsByNameAndIdNot(request.getName(), id)) {
+            throw new RuntimeException("Tên danh mục đã được sử dụng bởi danh mục khác!");
+        }
+
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
+
+        Category updatedCategory = categoryRepository.save(category);
+        return toResponse(updatedCategory);
+    }
+
+    // 5. Xóa Category (Kiểm tra quan hệ với Course)
+    public void deleteCategory(String id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với ID: " + id));
+
+        // Kiểm tra nếu danh mục đã có khóa học bên trong
+        if (category.getCourses() != null && !category.getCourses().isEmpty()) {
+            throw new RuntimeException("Không thể xóa danh mục này vì đang có "
+                    + category.getCourses().size() + " khóa học liên kết!");
+        }
+
+        categoryRepository.delete(category);
     }
 }

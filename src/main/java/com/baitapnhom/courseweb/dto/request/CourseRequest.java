@@ -1,15 +1,32 @@
 package com.baitapnhom.courseweb.dto.request;
 
+import com.baitapnhom.courseweb.enums.CourseStatus;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 
 public class CourseRequest {
+
+    @NotBlank(message = "ID giảng viên không được để trống")
     private String teacherId;
+
+    @NotBlank(message = "Tên khóa học không được để trống")
     private String title;
+
     private String description;
+
     private String thumbnailUrl;
+
+    @NotNull(message = "Giá khóa học không được để trống")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Giá khóa học không thể âm")
     private BigDecimal price;
-    private String status;
+
+    @NotBlank(message = "ID danh mục không được để trống")
     private String categoryId;
+
+    private CourseStatus status;
 
     public CourseRequest() {}
 
@@ -28,9 +45,9 @@ public class CourseRequest {
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
     public String getCategoryId() { return categoryId; }
     public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
+
+    public CourseStatus getStatus() { return status; }
+    public void setStatus(CourseStatus status) { this.status = status; }
 }

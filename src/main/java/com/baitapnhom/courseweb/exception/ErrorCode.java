@@ -34,13 +34,18 @@ public enum ErrorCode {
         
     // ============== VIDEO & CONTENT (1020-1099) ==============
     VIDEO_NOT_FOUND(1021, "Không tìm thấy thông tin video bài học"),
-    
+
+
     // ============== COURSE (1100-1199) ==============
     COURSE_NOT_FOUND(1100, "Khóa học không tồn tại"),
     COURSE_NOT_ACTIVE(1101, "Khóa học hiện không mở đăng ký"),
     INVALID_COURSE_PRICE(1102, "Giá khóa học không hợp lệ"),
     COURSE_NOT_APPROVED(1103, "Khóa học chưa được phê duyệt"),
     INVALID_COURSE_ID(1104, "Course ID không được để trống"),
+    CATEGORY_NOT_FOUND(1105, "Danh mục khóa học không tồn tại"),
+    TEACHER_NOT_FOUND(1106, "Giáo viên không tồn tại"),
+    CANNOT_DELETE_COURSE_HAS_LESSONS(1107, "Không thể xóa khóa học vì đã có bài học liên kết"),
+    CANNOT_DELETE_COURSE_HAS_ENROLLMENTS(1108, "Không thể xóa khóa học vì đã có học viên đăng ký"),
 
     // ============== ENROLLMENT (1200-1299) ==============
     ENROLLMENT_NOT_FOUND(1200, "Enrollment không tồn tại"),
@@ -51,6 +56,7 @@ public enum ErrorCode {
     INVALID_STUDENT_ID(1205, "Student ID không được để trống"),
     INVALID_PAGE_SIZE(1206, "Kích thước trang không hợp lệ"),
     USER_NOT_FOUND(4044, "Không tìm thấy hồ sơ học viên tương ứng với tài khoản này");
+
     
     private final int code;
     private final String message;
