@@ -35,7 +35,7 @@ import com.nimbusds.jwt.SignedJWT;
 @Service
 public class AuthenticationService {
     private final UserRepository userRepository;
-    
+
     @Value("${jwt.signerKey}")
     protected String SIGNER_KEY;
 
@@ -51,8 +51,8 @@ public class AuthenticationService {
         var verified = signedJWT.verify(verifier);
 
         return IntrospectResponse.builder()
-            .valid(verified && expiratime.after(new Date()))
-            .build();
+                .valid(verified && expiratime.after(new Date()))
+                .build();
     }
 
     public AuthenticationService(UserRepository userRepository) {
@@ -62,7 +62,7 @@ public class AuthenticationService {
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         var user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean authenticated = passwordEncoder.matches(request.getPassword(),
                 user.getPassword());
@@ -84,10 +84,10 @@ public class AuthenticationService {
         // Dùng thuật toán HS512 đủ mạnh để bảo vệ token an toàn
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
-        // Tạo 
+        // Tạo
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
-                .issuer("kieudat.com")
+                .issuer("course_web.com")
                 .issueTime(new Date())
                 // Hết hạn sau 1 giờ
                 .expirationTime(new Date(Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()))
@@ -114,5 +114,5 @@ public class AuthenticationService {
             return user.getRole().name();
         }
         return "";
-        }
     }
+}
