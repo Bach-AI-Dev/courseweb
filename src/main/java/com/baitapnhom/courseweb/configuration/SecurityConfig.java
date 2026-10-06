@@ -38,7 +38,8 @@ public class SecurityConfig {
             "/api/courses",
             "/api/courses/**",
             "/api/categories",
-            "/api/categories/**"
+            "/api/categories/**",
+             "/api/lessons/**"
     };
 
     @Value("${jwt.signerKey}")
