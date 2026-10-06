@@ -1,74 +1,122 @@
 package com.baitapnhom.courseweb.controller;
 
 import com.baitapnhom.courseweb.dto.request.LessonRequest;
+import com.baitapnhom.courseweb.dto.response.ApiResponse;
 import com.baitapnhom.courseweb.dto.response.LessonResponse;
 import com.baitapnhom.courseweb.service.LessonService;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.constraints.NotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/**
+ * Endpoints:
+ * - GET    /api/courses/{courseId}/lessons - Lấy danh sách bài học của khóa học
+ * (POST/PUT/DELETE cần token TEACHER hoặc ADMIN)
+ * - POST   /api/courses/{courseId}/lessons - Thêm bài học mới vào khóa học
+ * - GET    /api/lessons/{id}               - Lấy chi tiết 1 bài học
+ * - PUT    /api/lessons/{id}               - Cập nhật bài học
+ * - DELETE /api/lessons/{id}               - Xóa bài học
+ */
 @RestController
 @RequestMapping("/api")
-public class LessonController{
-    @Autowired
-    private LessonService lessonService;
+public class LessonController {
+    private static final Logger logger = LoggerFactory.getLogger(LessonController.class);
 
-    // 1. GET /api/courses/{courseId}/lessons (Lấy danh sách bài học của khóa học)
-    @GetMapping("/courses/{courseId}/lessons")
-    public ResponseEntity<List<LessonResponse>> getLessonsByCourse(@PathVariable String courseId) {
-        System.out.println("Lấy danh sách bài học của khóa học có id: "+ courseId );
-        return ResponseEntity.ok(lessonService.getLessonsByCourseId(courseId));
+    private final LessonService lessonService;
+
+    public LessonController(LessonService lessonService) {
+        this.lessonService = lessonService;
     }
 
-    // 2. POST /api/courses/{courseId}/lessons (Thêm bài học mới vào khóa học)
+    @GetMapping("/courses/{courseId}/lessons")
+    public ResponseEntity<ApiResponse<List<LessonResponse>>> getLessonsByCourse(
+            @PathVariable @NotBlank(message = "INVALID_COURSE_ID") String courseId) {
+
+        logger.info("Request to get lessons of course {}", courseId);
+
+        List<LessonResponse> lessons = lessonService.getLessonsByCourseId(courseId);
+
+        ApiResponse<List<LessonResponse>> response = new ApiResponse<>();
+        response.setCode(1000);
+        response.setMessage("Lấy danh sách bài học thành công");
+        response.setResult(lessons);
+
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/courses/{courseId}/lessons")
-    public ResponseEntity<LessonResponse> createLesson(
-            @PathVariable String courseId,
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<LessonResponse>> createLesson(
+            @PathVariable @NotBlank(message = "INVALID_COURSE_ID") String courseId,
             @RequestBody LessonRequest request) {
+
+        logger.info("Request to create lesson in course {}", courseId);
+
         LessonResponse savedLesson = lessonService.createLesson(courseId, request);
 
-        System.out.println("ID khóa học: " + savedLesson.getCourseId());
-        System.out.println("ID bài học vừa tạo: " + savedLesson.getId());
-        System.out.println("Tiêu đề: " + savedLesson.getName());
+        ApiResponse<LessonResponse> response = new ApiResponse<>();
+        response.setCode(1000);
+        response.setMessage("Thêm bài học thành công!");
+        response.setResult(savedLesson);
 
-        return ResponseEntity.ok(savedLesson);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // 3. PUT /api/lessons/{id} (Cập nhật thông tin bài học)
+    @GetMapping("/lessons/{id}")
+    public ResponseEntity<ApiResponse<LessonResponse>> getLessonById(
+            @PathVariable @NotBlank(message = "INVALID_LESSON_ID") String id) {
+
+        logger.info("Request to get lesson {}", id);
+
+        LessonResponse lesson = lessonService.getLessonById(id);
+
+        ApiResponse<LessonResponse> response = new ApiResponse<>();
+        response.setCode(1000);
+        response.setMessage("Lấy chi tiết bài học thành công");
+        response.setResult(lesson);
+
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("/lessons/{id}")
-    public ResponseEntity<LessonResponse> updateLesson(
-            @PathVariable String id,
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<LessonResponse>> updateLesson(
+            @PathVariable @NotBlank(message = "INVALID_LESSON_ID") String id,
             @RequestBody LessonRequest request) {
+
+        logger.info("Request to update lesson {}", id);
 
         LessonResponse updatedLesson = lessonService.updateLesson(id, request);
 
-        System.out.println("ID bài học vừa sửa: " + id);
+        ApiResponse<LessonResponse> response = new ApiResponse<>();
+        response.setCode(1000);
+        response.setMessage("Cập nhật bài học thành công");
+        response.setResult(updatedLesson);
 
-        return ResponseEntity.ok(updatedLesson);
+        return ResponseEntity.ok(response);
     }
 
-
-    // 4. DELETE /api/lessons/{id} (Xóa bài học)
     @DeleteMapping("/lessons/{id}")
-    public ResponseEntity<String> deleteLesson(@PathVariable String id) {
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteLesson(
+            @PathVariable @NotBlank(message = "INVALID_LESSON_ID") String id) {
 
-        System.out.println("Đang tiến hành xóa bài học có ID: " + id);
+        logger.info("Request to delete lesson {}", id);
 
-        // Gọi Service để thực hiện lệnh xóa trong Database
         lessonService.deleteLesson(id);
 
-        System.out.println("Xóa thành công bài học ID: " + id);
+        ApiResponse<Void> response = new ApiResponse<>();
+        response.setCode(1000);
+        response.setMessage("Xóa bài học thành công");
 
-        return ResponseEntity.ok("Deleted lesson successfully");
+        return ResponseEntity.ok(response);
     }
-
-    // 5. GET /api/lessons/{id} (Lấy chi tiết 1 bài học để hiển thị lên URL frontend)
-    @GetMapping("/lessons/{id}")
-    public ResponseEntity<LessonResponse> getLessonById(@PathVariable String id) {
-        System.out.println("Lấy thông tin chi tiết bài học ID: " + id);
-        return ResponseEntity.ok(lessonService.getLessonById(id));
-    }
-
 }
