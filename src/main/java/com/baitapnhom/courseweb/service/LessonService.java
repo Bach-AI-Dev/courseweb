@@ -8,6 +8,7 @@ import com.baitapnhom.courseweb.entity.VideoLessons;
 import com.baitapnhom.courseweb.repository.CourseRepository;
 import com.baitapnhom.courseweb.repository.LessonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class LessonService {
         return lessonList;
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // POST: Tạo lesson mới
     public LessonResponse createLesson(String courseId, LessonRequest request) {
         Course course = courseRepository.findById(courseId)
@@ -77,7 +78,8 @@ public class LessonService {
 
         return response;
     }
-
+    
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // PUT: Cập nhật bài học
     public LessonResponse updateLesson(String id, LessonRequest request) {
         // 1. Lấy bài học cũ từ tủ lạnh (Database)
@@ -131,7 +133,8 @@ public class LessonService {
 
         return response;
     }
-
+    
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // DELETE: Xóa bài học
     public void deleteLesson(String id) {
         Lesson existingLesson = lessonRepository.findById(id)
