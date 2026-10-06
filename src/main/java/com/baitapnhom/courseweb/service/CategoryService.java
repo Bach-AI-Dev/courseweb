@@ -5,6 +5,7 @@ import com.baitapnhom.courseweb.dto.response.CategoryResponse;
 import com.baitapnhom.courseweb.entity.Category;
 import com.baitapnhom.courseweb.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class CategoryService {
                 category.getDescription()
         );
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // 1. Tạo Category mới
     public CategoryResponse createCategory(CategoryRequest request) {
         if (categoryRepository.existsByName(request.getName())) {
@@ -55,7 +56,8 @@ public class CategoryService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với ID: " + id));
         return toResponse(category);
     }
-
+    
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // 4. Cập nhật Category
     public CategoryResponse updateCategory(String id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
@@ -71,7 +73,8 @@ public class CategoryService {
         Category updatedCategory = categoryRepository.save(category);
         return toResponse(updatedCategory);
     }
-
+    
+    @PreAuthorize("has('ADMIN')")
     // 5. Xóa Category (Kiểm tra quan hệ với Course)
     public void deleteCategory(String id) {
         Category category = categoryRepository.findById(id)
