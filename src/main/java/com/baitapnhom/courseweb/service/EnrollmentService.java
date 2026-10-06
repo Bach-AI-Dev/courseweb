@@ -28,7 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -266,6 +266,7 @@ public class EnrollmentService {
      * - Không thể hủy khóa học đã hoàn thành (COMPLETED)
      * - Khóa học phải tồn tại
      */
+    @PreAuthorize("has('ADMIN')")
     @Transactional
     public void cancelEnrollment(String studentId, String courseId) {
         logger.info("Student {} canceling enrollment in course {}", studentId, courseId);
