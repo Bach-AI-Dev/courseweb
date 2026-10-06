@@ -10,6 +10,7 @@ import com.baitapnhom.courseweb.exception.ErrorCode;
 import com.baitapnhom.courseweb.repository.CategoryRepository;
 import com.baitapnhom.courseweb.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ public class CourseService {
 
     @Autowired
     private CategoryRepository categoryRepository;
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // 1. Tạo mới khóa học
     public CourseResponse createCourse(CourseRequest request) {
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -56,7 +57,8 @@ public class CourseService {
         Course course = findCourseById(id);
         return toResponse(course);
     }
-
+    
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // 4. Cập nhật khóa học
     public CourseResponse updateCourse(String id, CourseRequest request) {
         Course course = findCourseById(id);
@@ -85,7 +87,8 @@ public class CourseService {
         Course saved = courseRepository.save(course);
         return toResponse(saved);
     }
-
+    
+    @PreAuthorize("has('ADMIN')")
     // 5. Xóa khóa học
     public void deleteCourse(String id) {
         Course course = findCourseById(id);
