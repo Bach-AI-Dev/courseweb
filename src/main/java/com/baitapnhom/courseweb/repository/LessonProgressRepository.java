@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface LessonProgressRepository extends JpaRepository<LessonProgress,Integer>{
+public interface LessonProgressRepository extends JpaRepository<LessonProgress,String>{
     Optional<LessonProgress> findByVideoLesson_LessonIdAndStudent_StudentId(String lessonId, String studentId);
     int countByStudentStudentIdAndVideoLessonLessonCourseIdAndIsCompletedTrue(String studentId, String courseId);
 
