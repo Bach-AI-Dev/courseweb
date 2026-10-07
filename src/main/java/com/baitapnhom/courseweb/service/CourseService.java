@@ -88,7 +88,7 @@ public class CourseService {
         return toResponse(saved);
     }
     
-    @PreAuthorize("has('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     // 5. Xóa khóa học
     public void deleteCourse(String id) {
         Course course = findCourseById(id);
