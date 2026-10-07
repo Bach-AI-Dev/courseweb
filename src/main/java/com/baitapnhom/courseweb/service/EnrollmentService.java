@@ -266,7 +266,7 @@ public class EnrollmentService {
      * - Không thể hủy khóa học đã hoàn thành (COMPLETED)
      * - Khóa học phải tồn tại
      */
-    @PreAuthorize("has('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void cancelEnrollment(String studentId, String courseId) {
         logger.info("Student {} canceling enrollment in course {}", studentId, courseId);
