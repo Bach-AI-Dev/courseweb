@@ -53,7 +53,6 @@ public class LessonController {
     }
 
     @PostMapping("/courses/{courseId}/lessons")
-    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<LessonResponse>> createLesson(
             @PathVariable @NotBlank(message = "INVALID_COURSE_ID") String courseId,
             @RequestBody LessonRequest request) {
@@ -105,7 +104,6 @@ public class LessonController {
     }
 
     @DeleteMapping("/lessons/{id}")
-    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteLesson(
             @PathVariable @NotBlank(message = "INVALID_LESSON_ID") String id) {
 
