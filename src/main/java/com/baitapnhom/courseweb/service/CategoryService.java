@@ -74,7 +74,7 @@ public class CategoryService {
         return toResponse(updatedCategory);
     }
     
-    @PreAuthorize("has('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     // 5. Xóa Category (Kiểm tra quan hệ với Course)
     public void deleteCategory(String id) {
         Category category = categoryRepository.findById(id)
