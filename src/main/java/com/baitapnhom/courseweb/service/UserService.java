@@ -74,18 +74,18 @@ public class UserService {
         return user;
     }
 
-    @PreAuthorize("has('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<User> getUsers() {
         return userRepository.findAll();
     }
     
-    @PreAuthorize("has('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public User getUser(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
     }
     
-    @PreAuthorize("has('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public User updateUser(String userId, UserUpdateRequest request) {
         User user = getUser(userId);
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
@@ -98,7 +98,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    @PreAuthorize("has('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void deleteUser(String id) {
         if (studentRepository.existsById(id)) {
