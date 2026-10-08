@@ -18,9 +18,7 @@ public class CourseController {
     @Autowired
     private CourseService courseService;
 
-    // 1. Tạo mới: Chỉ TEACHER hoặc ADMIN
     @PostMapping
-    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ApiResponse<CourseResponse> createCourse(@RequestBody @Valid CourseRequest request) {
         ApiResponse<CourseResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(courseService.createCourse(request));
@@ -43,9 +41,7 @@ public class CourseController {
         return apiResponse;
     }
 
-    // 4. Sửa: Chỉ TEACHER hoặc ADMIN
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ApiResponse<CourseResponse> updateCourse(@PathVariable String id, @RequestBody @Valid CourseRequest request) {
         ApiResponse<CourseResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(courseService.updateCourse(id, request));
@@ -54,7 +50,6 @@ public class CourseController {
 
     // 5. Xóa: Chỉ ADMIN hoặc TEACHER
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public ApiResponse<String> deleteCourse(@PathVariable String id) {
         courseService.deleteCourse(id);
         ApiResponse<String> apiResponse = new ApiResponse<>();
