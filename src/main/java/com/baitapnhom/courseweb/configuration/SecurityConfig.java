@@ -56,9 +56,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
 
                 // 3. Phân quyền User
-                .requestMatchers(HttpMethod.GET, "/api/users").hasRole(Role.ADMIN.name())
-                .requestMatchers(HttpMethod.GET, "/api/users/my-info").authenticated()
-                .requestMatchers(HttpMethod.GET, "/api/users/{userId}").hasRole(Role.ADMIN.name())
+                // .requestMatchers(HttpMethod.GET, "/api/users").hasRole(Role.ADMIN.name())
+                // .requestMatchers(HttpMethod.GET, "/api/users/my-info").authenticated()
+                // .requestMatchers(HttpMethod.GET, "/api/users/{userId}").hasRole(Role.ADMIN.name())
 
                 // 4. Tất cả các request còn lại phải có token xác thực
                 .anyRequest().authenticated());
