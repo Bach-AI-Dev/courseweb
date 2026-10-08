@@ -91,10 +91,8 @@ public class EnrollmentService {
                     return new AppException(ErrorCode.COURSE_NOT_FOUND);
                 });
             
-            // Bước 4: Kiểm tra khóa học có ACTIVE không
-            String[] validStatus = {"PUBLISHED", "ACTIVE"};
-            if (course.getStatus() == null || 
-                !Arrays.asList(validStatus).contains(course.getStatus())) {
+            // Bước 4: Kiểm tra khóa học có PUBLISHED không
+            if (course.getStatus() == null || course.getStatus() != CourseStatus.PUBLISHED) {
                 logger.warn("Course {} status is {}, cannot enroll", courseId, course.getStatus());
                 throw new AppException(ErrorCode.COURSE_NOT_ACTIVE);
             }
