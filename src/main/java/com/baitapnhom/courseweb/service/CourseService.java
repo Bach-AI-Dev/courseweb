@@ -24,8 +24,9 @@ public class CourseService {
 
     @Autowired
     private CategoryRepository categoryRepository;
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // 1. Tạo mới khóa học
+    // Phân quyền Teacher vs admin mới có thể tạo Course
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public CourseResponse createCourse(CourseRequest request) {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -58,8 +59,8 @@ public class CourseService {
         return toResponse(course);
     }
     
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // 4. Cập nhật khóa học
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public CourseResponse updateCourse(String id, CourseRequest request) {
         Course course = findCourseById(id);
 
@@ -88,8 +89,8 @@ public class CourseService {
         return toResponse(saved);
     }
     
-    @PreAuthorize("hasRole('ADMIN')")
     // 5. Xóa khóa học
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteCourse(String id) {
         Course course = findCourseById(id);
 
