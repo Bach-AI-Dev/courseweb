@@ -12,6 +12,7 @@ import com.baitapnhom.courseweb.repository.StudentRepository;
 
 import com.baitapnhom.courseweb.dto.response.EnrollmentResponse;
 import com.baitapnhom.courseweb.dto.response.PagedEnrollmentResponse;
+import com.baitapnhom.courseweb.enums.CourseStatus;
 import com.baitapnhom.courseweb.exception.AppException;
 import com.baitapnhom.courseweb.exception.ErrorCode;
 
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,7 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.prepost.PreAuthorize;
+//import org.springframework.security.access.prepost.PreAuthorize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -255,7 +255,8 @@ public class EnrollmentService {
     @Transactional(readOnly = true)
     public boolean checkEnrollmentStatus(String studentId, String courseId) {
         logger.debug("Checking enrollment status for student {} in course {}", studentId, courseId);
-        return enrollmentRepository.existsByStudentStudentIdAndCourseId(studentId, courseId);
+        // Thay vì chỉ check tồn tại, giờ check xem có đang ACTIVE không
+        return enrollmentRepository.existsByStudentStudentIdAndCourseIdAndStatus(studentId, courseId, EnrollmentStatus.ACTIVE);
     }
 
     /**
@@ -264,7 +265,7 @@ public class EnrollmentService {
      * - Không thể hủy khóa học đã hoàn thành (COMPLETED)
      * - Khóa học phải tồn tại
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void cancelEnrollment(String studentId, String courseId) {
         logger.info("Student {} canceling enrollment in course {}", studentId, courseId);

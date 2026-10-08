@@ -20,4 +20,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, String> 
     Optional<Enrollment> findByStudentStudentIdAndCourseId(String studentId, String courseId);
     
     Page<Enrollment> findByStudentStudentId(String studentId, Pageable pageable);
+    
+    boolean existsByStudentStudentIdAndCourseIdAndStatus(String studentId, String courseId, com.baitapnhom.courseweb.enums.EnrollmentStatus status);
 }

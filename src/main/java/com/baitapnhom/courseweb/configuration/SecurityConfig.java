@@ -30,8 +30,7 @@ public class SecurityConfig {
             "/api/auth/register",
             "/api/auth/login",
             "/api/auth/introspect",
-            "/api/v1/progress/update",
-            "/api/courses/{courseId}/enroll"
+            "/api/v1/progress/update"
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {

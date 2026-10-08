@@ -44,10 +44,16 @@ public class EnrollmentController {
 
     // Hàm private để tự động lấy studentId từ Token
     private String getLoggedInStudentId() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        
+        String username = authentication.getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        return user.getId(); // Trả về UUID của user (chính là studentId)
+        return user.getId(); 
     }
 
     @PostMapping("/courses/{courseId}/enroll")
