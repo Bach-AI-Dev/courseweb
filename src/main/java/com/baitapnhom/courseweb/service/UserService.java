@@ -1,7 +1,6 @@
 package com.baitapnhom.courseweb.service;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,10 +14,8 @@ import com.baitapnhom.courseweb.exception.AppException;
 import com.baitapnhom.courseweb.exception.ErrorCode;
 import com.baitapnhom.courseweb.repository.StudentRepository;
 import com.baitapnhom.courseweb.repository.UserRepository;
-
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
@@ -37,15 +34,13 @@ public class UserService {
 
         User user = new User();
 
-        // Kiểm tra trùng lặp
+        // Kiểm tra trùng lặp Username và email
         if (userRepository.existsByUsername(request.getUsername()))
             throw new AppException(ErrorCode.USER_EXISTED);
 
         if (userRepository.existsByEmail(request.getEmail()))
             throw new AppException(ErrorCode.EMAIL_EXISTED);
 
-        // Mã hóa password qua Bcrypy là implementation của PasswordEncoder
-        // PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         user.setUsername(request.getUsername());
@@ -53,9 +48,8 @@ public class UserService {
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
 
-        // CHẶN TẠO TÀI KHOẢN ADMIN TỪ API ĐĂNG KÝ
+        // Chặn tạo tài khoản ADMIN từ API đăng kí
         if (request.getRole() == Role.ADMIN || request.getRole() == Role.TEACHER) {
-            // Bạn có thể tạo thêm ErrorCode.INVALID_ROLE trong file ErrorCode.java để dùng
             throw new AppException(ErrorCode.UNAUTHORIZED_ROLE_CREATION);
 
         }
@@ -64,8 +58,7 @@ public class UserService {
         user.setRole(role);
         user = userRepository.save(user);
 
-        // Khi đăng ký User, tự động tạo luôn bản ghi trong bảng students tương ứng với
-        // ID của User
+        // Khi đăng kí User tự động tạo bản ghi trong bảng students với Id của user
         if (role == Role.STUDENT) {
             Student student = new Student(user);
             studentRepository.save(student);
