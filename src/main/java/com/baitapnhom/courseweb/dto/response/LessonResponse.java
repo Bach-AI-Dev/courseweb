@@ -1,13 +1,14 @@
 package com.baitapnhom.courseweb.dto.response;
 
 public class LessonResponse {
+
     private String id;
     private String courseId;
     private String name;
-    private String type;
     private Integer lessonOrder;
     private String videoUrl;
     private Integer duration;
+    private String assignmentUrl;
 
     public String getId() {
         return id;
@@ -33,14 +34,6 @@ public class LessonResponse {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public Integer getLessonOrder() {
         return lessonOrder;
     }
@@ -63,5 +56,13 @@ public class LessonResponse {
 
     public void setDuration(Integer duration) {
         this.duration = duration;
+    }
+
+    public String getAssignmentUrl() {
+        return assignmentUrl;
+    }
+
+    public void setAssignmentUrl(String assignmentUrl) {
+        this.assignmentUrl = assignmentUrl;
     }
 }
