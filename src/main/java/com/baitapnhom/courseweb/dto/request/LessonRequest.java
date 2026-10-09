@@ -2,25 +2,16 @@ package com.baitapnhom.courseweb.dto.request;
 
 public class LessonRequest {
     private String name;
-    private String type; // Chỉ nhận giá trị 'VIDEO' hoặc 'ASSIGNMENT'
     private Integer lessonOrder;
     private String videoUrl;
     private Integer duration;
-
+    private String assignmentUrl;
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public Integer getLessonOrder() {
@@ -45,5 +36,13 @@ public class LessonRequest {
 
     public void setDuration(Integer duration) {
         this.duration = duration;
+    }
+
+    public String getAssignmentUrl() {
+        return assignmentUrl;
+    }
+
+    public void setAssignmentUrl(String assignmentUrl) {
+        this.assignmentUrl = assignmentUrl;
     }
 }
