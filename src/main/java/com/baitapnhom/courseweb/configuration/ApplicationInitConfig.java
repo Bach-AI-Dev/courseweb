@@ -10,36 +10,32 @@ import com.baitapnhom.courseweb.entity.User;
 import com.baitapnhom.courseweb.enums.Role;
 import com.baitapnhom.courseweb.repository.UserRepository;
 
-@Configuration 
+@Configuration
 public class ApplicationInitConfig {
-    // Khởi chạy khi App start, thêm User admin vào 
-
-    @Autowired 
+    // Khởi chạy khi bắt đầu, thêm User admin vào nếu database chưa có User vs quyền ADMIN
+    @Autowired
     PasswordEncoder passwordEncoder;
-
     @Bean
-    ApplicationRunner applicationRunner(UserRepository userRepository){
+    ApplicationRunner applicationRunner(UserRepository userRepository) {
         return args -> {
-           // Kiểm tra xem database đã có tài khoản admin chưa
-            if (userRepository.findByUsername("admin").isEmpty()) {
-                
-                // Sử dụng Java thuần (new Object và setter) thay vì Lombok Builder
+            // Đổi logic: Kiểm tra xem trong DB đã có BẤT KỲ tài khoản nào mang quyền ADMIN chưa
+            if (!userRepository.existsByRole(Role.ADMIN)) {
                 User user = new User();
                 user.setUsername("admin");
-                
+
                 // Bắt buộc phải có email vì Entity quy định nullable = false
                 user.setEmail("admin@gmail.com");
-                
-                // Mã hóa mật khẩu trước khi lưu (ví dụ mật khẩu là "admin")
+
+                // Mã hóa mật khẩu
                 user.setPassword(passwordEncoder.encode("admin_kieu_thanh_dat"));
-                
-                // Gán quyền trực tiếp bằng Enum, không dùng HashSet
+
+                // Gán quyền 
                 user.setRole(Role.ADMIN);
 
-                // Lưu xuống database (trong video bị thiếu bước save này)
+                // Lưu xuống database
                 userRepository.save(user);
-                
-                System.out.println("Tai khoan ADMIN da duoc tao tu dong!!!!!!!!!!!!!!!!!!");
+
+                System.out.println("Tai khoan ADMIN da duoc tao tu dong");
             }
         };
     }
