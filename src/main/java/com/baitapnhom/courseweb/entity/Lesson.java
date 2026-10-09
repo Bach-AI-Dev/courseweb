@@ -14,7 +14,6 @@ public class Lesson {
     private VideoLessons videoLessons;
 
 
-    // Bổ sung Getter/Setter cho thuộc tính mới
     public VideoLessons getVideoLesson() {
         return videoLessons;
     }
@@ -39,9 +38,9 @@ public class Lesson {
     @Column(nullable = false)
     private String name;
 
-    // Thêm cột type ('VIDEO' hoặc 'ASSIGNMENT')
-    @Column(nullable = false, length = 20)
-    private String type;
+    // Link bài tập của bài học (Google Form, Drive...), có thể để trống
+    @Column(name = "assignment_url", length = 1000)
+    private String assignmentUrl;
 
     // Thêm 2 cột thời gian
     @Column(name = "created_at", updatable = false)
@@ -96,12 +95,12 @@ public class Lesson {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
+    public String getAssignmentUrl() {
+        return assignmentUrl;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setAssignmentUrl(String assignmentUrl) {
+        this.assignmentUrl = assignmentUrl;
     }
 
     public LocalDateTime getCreatedAt() {
