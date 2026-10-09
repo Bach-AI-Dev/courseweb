@@ -1,0 +1,100 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 36, 59, 0.6);
+    display: grid;
+    place-items: center;
+    z-index: 50;
+    padding: 16px;
+}
+
+.modal {
+    background: #fff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 440px;
+    padding: 28px;
+    max-height: 92vh;
+    overflow: auto;
+    position: relative;
+}
+
+.modal h3 {
+    margin: 0 0 4px;
+    font-size: 24px;
+}
+
+.modal__close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: 0;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--ink);
+}
+
+.tabs {
+    display: flex;
+    gap: 6px;
+    margin: 16px 0;
+}
+
+.tabs button {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 6px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tabs button.on {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+}
+
+.roles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.role {
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    text-align: left;
+    background: #fff;
+    font: inherit;
+}
+
+.role b {
+    display: block;
+}
+
+.role small {
+    color: #4b6073;
+}
+
+.role.on {
+    border-color: var(--sea);
+    background: var(--sky);
+}
+
+.lbl {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: -6px;
+}
+
+.err {
+    color: #b3261e;
+    font-size: 14px;
+    margin: 0;
+}.role:disabled { opacity: 0.5; cursor: not-allowed; }
