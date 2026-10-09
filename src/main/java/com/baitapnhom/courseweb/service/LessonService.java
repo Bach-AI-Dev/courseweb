@@ -35,9 +35,11 @@ public class LessonService {
             }
 
             response.setName(entity.getName());
-            response.setType(entity.getType());
+            response.setAssignmentUrl(entity.getAssignmentUrl());
             response.setLessonOrder(entity.getLessonOrder());
-            if ("VIDEO".equalsIgnoreCase(entity.getType()) && entity.getVideoLesson() != null) {
+
+            // Bài cũ có thể chưa có video -> kiểm tra null để 1 bài lỗi không làm hỏng cả danh sách
+            if (entity.getVideoLesson() != null) {
                 response.setVideoUrl(entity.getVideoLesson().getUrl());
                 response.setDuration(entity.getVideoLesson().getDurationSeconds());
             }
@@ -56,16 +58,14 @@ public class LessonService {
         Lesson lessonEntity = new Lesson();
         lessonEntity.setCourse(course);
         lessonEntity.setName(request.getName());
-        lessonEntity.setType(request.getType()); // "VIDEO" hoặc "ASSIGNMENT"
         lessonEntity.setLessonOrder(request.getLessonOrder());
-        if ("VIDEO".equalsIgnoreCase(request.getType())) {
-            VideoLessons video = new VideoLessons(); // Tạo 1 video mới
-            video.setUrl(request.getVideoUrl());   // Lấy link video khách gửi
-            video.setDurationSeconds(request.getDuration());
+        lessonEntity.setAssignmentUrl(request.getAssignmentUrl());
 
+        VideoLessons video = new VideoLessons(); // Tạo 1 video mới
+        video.setUrl(request.getVideoUrl());   // Lấy link video khách gửi
+        video.setDurationSeconds(request.getDuration());
 
-            lessonEntity.setVideoLesson(video);
-        }
+        lessonEntity.setVideoLesson(video);
 
         Lesson savedLesson = lessonRepository.save(lessonEntity);
 
@@ -73,42 +73,43 @@ public class LessonService {
         response.setId(savedLesson.getId());
         response.setCourseId(course.getId());
         response.setName(savedLesson.getName());
-        response.setType(savedLesson.getType());
         response.setLessonOrder(savedLesson.getLessonOrder());
+        response.setAssignmentUrl(savedLesson.getAssignmentUrl());
+
+        // Trả luôn thông tin video vừa tạo (trước đây thiếu nên khách nhận videoUrl = null)
+        if (savedLesson.getVideoLesson() != null) {
+            response.setVideoUrl(savedLesson.getVideoLesson().getUrl());
+            response.setDuration(savedLesson.getVideoLesson().getDurationSeconds());
+        }
 
         return response;
     }
-    
+
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // PUT: Cập nhật bài học
     public LessonResponse updateLesson(String id, LessonRequest request) {
-        // 1. Lấy bài học cũ từ tủ lạnh (Database)
+        // 1. Lấy bài học cũ từ Database
         Lesson existingLesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài học có ID: " + id));
 
         // 2. Cập nhật các thông tin cơ bản
         existingLesson.setName(request.getName());
-        existingLesson.setType(request.getType());
+        existingLesson.setAssignmentUrl(request.getAssignmentUrl());
         existingLesson.setLessonOrder(request.getLessonOrder());
 
-        // 3. XỬ LÝ RIÊNG CHO VIDEO
-        if ("VIDEO".equalsIgnoreCase(request.getType())) {
-            // Nếu bài học đã có video từ trước -> Lấy ra dùng tiếp, nếu chưa có -> Tạo mới
-            VideoLessons video = existingLesson.getVideoLesson();
-            if (video == null) {
-                video = new VideoLessons();
-            }
-
-            // Cập nhật link và thời lượng mới
-            video.setUrl(request.getVideoUrl());
-            video.setDurationSeconds(request.getDuration());
-
-            // Dán lại vào Bài học
-            existingLesson.setVideoLesson(video);
-        } else {
-            // Trường hợp người dùng đổi từ VIDEO sang ASSIGNMENT -> Gỡ bỏ video
-            existingLesson.setVideoLesson(null);
+        // 3. XỬ LÝ VIDEO (bài nào cũng có video nên không cần kiểm tra type nữa)
+        // Nếu bài học đã có video từ trước -> Lấy ra dùng tiếp, nếu chưa có -> Tạo mới
+        VideoLessons video = existingLesson.getVideoLesson();
+        if (video == null) {
+            video = new VideoLessons();
         }
+
+        // Cập nhật link và thời lượng mới
+        video.setUrl(request.getVideoUrl());
+        video.setDurationSeconds(request.getDuration());
+
+        // Dán lại vào Bài học
+        existingLesson.setVideoLesson(video);
 
         // 4. Lưu lại vào Database
         Lesson updatedLesson = lessonRepository.save(existingLesson);
@@ -122,18 +123,18 @@ public class LessonService {
         }
 
         response.setName(updatedLesson.getName());
-        response.setType(updatedLesson.getType());
+        response.setAssignmentUrl(updatedLesson.getAssignmentUrl());
         response.setLessonOrder(updatedLesson.getLessonOrder());
 
-        // Lấy thông tin video nhét vào hộp nếu nó là bài giảng Video
-        if ("VIDEO".equalsIgnoreCase(updatedLesson.getType()) && updatedLesson.getVideoLesson() != null) {
+        // Lấy thông tin video nhét vào hộp
+        if (updatedLesson.getVideoLesson() != null) {
             response.setVideoUrl(updatedLesson.getVideoLesson().getUrl());
             response.setDuration(updatedLesson.getVideoLesson().getDurationSeconds());
         }
 
         return response;
     }
-    
+
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     // DELETE: Xóa bài học
     public void deleteLesson(String id) {
@@ -154,10 +155,11 @@ public class LessonService {
         }
 
         response.setName(existingLesson.getName());
-        response.setType(existingLesson.getType());
+        response.setAssignmentUrl(existingLesson.getAssignmentUrl());
         response.setLessonOrder(existingLesson.getLessonOrder());
 
-        if ("VIDEO".equalsIgnoreCase(existingLesson.getType()) && existingLesson.getVideoLesson() != null) {
+        // Kiểm tra null như phần danh sách, tránh NullPointerException với bài chưa có video
+        if (existingLesson.getVideoLesson() != null) {
             response.setVideoUrl(existingLesson.getVideoLesson().getUrl());
             response.setDuration(existingLesson.getVideoLesson().getDurationSeconds());
         }
