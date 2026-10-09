@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +54,10 @@ public class LessonController {
     }
 
     @PostMapping("/courses/{courseId}/lessons")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<LessonResponse>> createLesson(
             @PathVariable @NotBlank(message = "INVALID_COURSE_ID") String courseId,
-            @RequestBody LessonRequest request) {
+            @Valid @RequestBody LessonRequest request) {
 
         logger.info("Request to create lesson in course {}", courseId);
 
@@ -89,7 +91,7 @@ public class LessonController {
     @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<LessonResponse>> updateLesson(
             @PathVariable @NotBlank(message = "INVALID_LESSON_ID") String id,
-            @RequestBody LessonRequest request) {
+            @Valid @RequestBody LessonRequest request) {
 
         logger.info("Request to update lesson {}", id);
 
@@ -104,6 +106,7 @@ public class LessonController {
     }
 
     @DeleteMapping("/lessons/{id}")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteLesson(
             @PathVariable @NotBlank(message = "INVALID_LESSON_ID") String id) {
 
