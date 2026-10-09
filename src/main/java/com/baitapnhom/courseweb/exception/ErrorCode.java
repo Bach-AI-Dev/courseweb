@@ -25,16 +25,15 @@ public enum ErrorCode {
 
     EMAIL_INVALID(1007, "Email không đúng định dạng"),
     EMAIL_EMPTY(1008, "Email không được để trống"),
-            
+
     USER_NOT_EXISTED(1009, "User không tồn tại"),
-    UNAUTHENTICATED(1010, "Mật khẩu không chính xác hoặc chưa được xác thực"),
-    
+    UNAUTHENTICATED(1010, "Tài khoản hoặc mật khẩu không chính xác"),
+
     UNAUTHORIZED(1011, "Bạn không có quyền truy cập tài nguyên này"),
     UNAUTHORIZED_ROLE_CREATION(1012, "Bạn không thể tạo tài khoản này"),
-        
+
     // ============== VIDEO & CONTENT (1020-1099) ==============
     VIDEO_NOT_FOUND(1021, "Không tìm thấy thông tin video bài học"),
-
 
     // ============== COURSE (1100-1199) ==============
     COURSE_NOT_FOUND(1100, "Khóa học không tồn tại"),
@@ -57,14 +56,13 @@ public enum ErrorCode {
     INVALID_PAGE_SIZE(1206, "Kích thước trang không hợp lệ"),
     USER_NOT_FOUND(4044, "Không tìm thấy hồ sơ học viên tương ứng với tài khoản này");
 
-    
     private final int code;
     private final String message;
 
     /**
      * Constructor của ErrorCode enum
      * 
-     * @param code Mã lỗi số (dùng để gửi cho client)
+     * @param code    Mã lỗi số (dùng để gửi cho client)
      * @param message Thông báo lỗi (tiếng Việt)
      */
     ErrorCode(int code, String message) {
