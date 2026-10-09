@@ -51,8 +51,9 @@ public class GlobalExceptionHandler {
         logger.error("Database constraint violation", exception);
         
         ApiResponse<?> apiResponse = new ApiResponse<>();
-        apiResponse.setCode(ErrorCode.ALREADY_ENROLLED.getCode());
-        apiResponse.setMessage("Bạn đã đăng ký khóa học này rồi!");
+        // Trả về một mã lỗi chung cho dữ liệu (ví dụ: 9998) thay vì ép mã ALREADY_ENROLLED (1201)
+        apiResponse.setCode(9998); 
+        apiResponse.setMessage("Dữ liệu không hợp lệ hoặc đã tồn tại trong hệ thống (vi phạm ràng buộc).");
         
         return ResponseEntity.badRequest().body(apiResponse);
     }

@@ -144,8 +144,8 @@ public class EnrollmentService {
                         studentId, courseId, e.getErrorCode());
             throw e;
         } catch (Exception e) {
-            logger.error("Unexpected error during enrollment for student {} course {}", studentId, courseId, e);
-            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED);
+            logger.error("Unexpected error...", e);
+            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
         }
     }
 
@@ -186,8 +186,8 @@ public class EnrollmentService {
                 .collect(Collectors.toList());
                 
         } catch (Exception e) {
-            logger.error("Error fetching courses for student {}", studentId, e);
-            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED);
+            logger.error("Unexpected error...", e);
+            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
         }
     }
 
@@ -244,8 +244,8 @@ public class EnrollmentService {
             );
             
         } catch (Exception e) {
-            logger.error("Error fetching paginated courses for student {}", studentId, e);
-            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED);
+            logger.error("Unexpected error...", e);
+            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
         }
     }
 
@@ -295,8 +295,8 @@ public class EnrollmentService {
             logger.error("Application error during cancellation: {}", e.getErrorCode());
             throw e;
         } catch (Exception e) {
-            logger.error("Unexpected error during cancellation for student {}", studentId, e);
-            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED);
+            logger.error("Unexpected error...", e);
+            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
         }
     }
 
@@ -328,8 +328,8 @@ public class EnrollmentService {
             logger.error("Application error: {}", e.getErrorCode());
             throw e;
         } catch (Exception e) {
-            logger.error("Unexpected error fetching enrollment {}", enrollmentId, e);
-            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED);
+            logger.error("Unexpected error...", e);
+            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
         }
     }
 }
