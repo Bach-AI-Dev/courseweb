@@ -19,7 +19,7 @@ public class Enrollment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    private User student;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
@@ -36,13 +36,13 @@ public class Enrollment {
     public Enrollment() {
     }
 
-    public Enrollment(Student student, Course course, EnrollmentStatus status) {
+    public Enrollment(User student, Course course, EnrollmentStatus status) {
         this.student = student;
         this.course = course;
         this.status = status;
     }
 
-    // Getters and Setters
+    // Getters & Setters
     public String getId() {
         return id;
     }
@@ -51,11 +51,11 @@ public class Enrollment {
         this.id = id;
     }
 
-    public Student getStudent() {
+    public User getStudent() {
         return student;
     }
 
-    public void setStudent(Student student) {
+    public void setStudent(User student) {
         this.student = student;
     }
 
