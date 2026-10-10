@@ -1,6 +1,7 @@
 package com.baitapnhom.courseweb.controller;
 
 import com.baitapnhom.courseweb.dto.request.LessonProgressRequest;
+import com.baitapnhom.courseweb.dto.response.CourseMemberProgressResponse;
 import com.baitapnhom.courseweb.dto.response.CourseProgressResponse;
 import com.baitapnhom.courseweb.dto.response.LessonProgressResponse;
 import com.baitapnhom.courseweb.entity.User;
@@ -14,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/progress")
@@ -49,10 +52,9 @@ public class LessonProgressController {
         // Lấy ID thật của người đang cầm Token
         String realStudentId = getLoggedInStudentId();
 
-        // Ghi đè ID vào request để chặn việc Frontend gửi linh tinh
-        request.setStudentId(realStudentId);
 
-        LessonProgressResponse responseData = progressService.updateProgress(request);
+
+        LessonProgressResponse responseData = progressService.updateProgress(request,realStudentId);
         return ResponseEntity.ok(responseData);
     }
 
@@ -74,6 +76,12 @@ public class LessonProgressController {
 
         LessonProgressResponse response = progressService.getLessonProgress(lessonId, realStudentId);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/courses/{courseId}/members")
+    public ResponseEntity<List<CourseMemberProgressResponse>> getCourseMembersProgress(
+            @PathVariable String courseId) {
+        return ResponseEntity.ok(progressService.getCourseMembersProgress(courseId));
     }
 }
 

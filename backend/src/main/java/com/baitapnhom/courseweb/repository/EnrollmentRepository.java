@@ -25,7 +25,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, String> 
     
     // Phân trang danh sách đăng ký của học viên
     Page<Enrollment> findByStudentId(String studentId, Pageable pageable);
-    
+    List<Enrollment> findByCourseIdAndStatusNot(String courseId, EnrollmentStatus status);
     // Kiểm tra theo trạng thái đăng ký
     boolean existsByStudentIdAndCourseIdAndStatus(String studentId, String courseId, EnrollmentStatus status);
 }
