@@ -11,10 +11,10 @@ public class VideoLessons {
     // Liên kết 1-1 với Lesson
     @OneToOne
     @MapsId
-    @JoinColumn(name = "lesson_id",columnDefinition = "varchar(36)")
+    @JoinColumn(name = "lesson_id", columnDefinition = "VARCHAR(36)")
     private Lesson lesson;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, length = 255) // Bỏ unique = true
     private String url;
 
     @Column(name = "duration_seconds", nullable = false)

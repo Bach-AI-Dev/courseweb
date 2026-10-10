@@ -7,12 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baitapnhom.courseweb.dto.request.RegisterRequest;
 import com.baitapnhom.courseweb.dto.request.UserUpdateRequest;
 import com.baitapnhom.courseweb.dto.response.UserResponse;
-import com.baitapnhom.courseweb.entity.Student;
 import com.baitapnhom.courseweb.entity.User;
 import com.baitapnhom.courseweb.enums.Role;
 import com.baitapnhom.courseweb.exception.AppException;
 import com.baitapnhom.courseweb.exception.ErrorCode;
-import com.baitapnhom.courseweb.repository.StudentRepository;
 import com.baitapnhom.courseweb.repository.UserRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,9 +20,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class UserService {
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private StudentRepository studentRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -48,23 +43,13 @@ public class UserService {
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
 
-        // Chặn tạo tài khoản ADMIN từ API đăng kí
+        // Chặn tạo tài khoản ADMIN từ API đăng ký
         if (request.getRole() == Role.ADMIN || request.getRole() == Role.TEACHER) {
             throw new AppException(ErrorCode.UNAUTHORIZED_ROLE_CREATION);
-
         }
 
-        Role role = Role.STUDENT;
-        user.setRole(role);
-        user = userRepository.save(user);
-
-        // Khi đăng kí User tự động tạo bản ghi trong bảng students với Id của user
-        if (role == Role.STUDENT) {
-            Student student = new Student(user);
-            studentRepository.save(student);
-        }
-
-        return user;
+        user.setRole(Role.STUDENT);
+        return userRepository.save(user);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -94,8 +79,8 @@ public class UserService {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void deleteUser(String id) {
-        if (studentRepository.existsById(id)) {
-            studentRepository.deleteById(id);
+        if (!userRepository.existsById(id)) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
         }
         userRepository.deleteById(id);
     }
@@ -121,5 +106,4 @@ public class UserService {
 
         return response;
     }
-
 }

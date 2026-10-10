@@ -12,12 +12,14 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "courses")
 public class Course {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(name = "teacher_id", nullable = false)
-    private String teacherId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teacher_id", nullable = false)
+    private User teacher;
 
     @Column(nullable = false, length = 255)
     private String title;
@@ -25,17 +27,17 @@ public class Course {
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
-    @Column(name = "thumbnail_url")
+    @Column(name = "thumbnail_url", length = 255)
     private String thumbnailUrl;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    private BigDecimal price = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private CourseStatus status;
+    private CourseStatus status = CourseStatus.DRAFT;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     @JsonIgnoreProperties("courses")
     private Category category;
@@ -50,11 +52,12 @@ public class Course {
 
     public Course() {}
 
+    // Getters & Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-    public String getTeacherId() { return teacherId; }
-    public void setTeacherId(String teacherId) { this.teacherId = teacherId; }
+    public User getTeacher() { return teacher; }
+    public void setTeacher(User teacher) { this.teacher = teacher; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

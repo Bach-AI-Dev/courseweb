@@ -20,22 +20,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-/**
- * Endpoints:
- * - POST   /api/courses/{courseId}/enroll - Đăng ký khóa học
- * - GET    /api/users/me/courses - Lấy danh sách khóa học
- * - GET    /api/users/me/courses-paginated - Lấy danh sách phân trang
- * - GET    /api/courses/{courseId}/enrollment-status - Kiểm tra status
- * - DELETE /api/courses/{courseId}/enrollment - Hủy đăng ký
- * - GET    /api/enrollments/{enrollmentId} - Lấy chi tiết enrollment
- */
 @RestController
 @RequestMapping("/api")
 public class EnrollmentController {
     private static final Logger logger = LoggerFactory.getLogger(EnrollmentController.class);
     
     private final EnrollmentService enrollmentService;
-    private final UserRepository userRepository; // Bổ sung UserRepository
+    private final UserRepository userRepository;
 
     public EnrollmentController(EnrollmentService enrollmentService, UserRepository userRepository) {
         this.enrollmentService = enrollmentService;
@@ -58,7 +49,7 @@ public class EnrollmentController {
 
     @PostMapping("/courses/{courseId}/enroll")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> enrollCourse(
-            @PathVariable @NotBlank(message = "INVALID_COURSE_ID") String courseId) { // Xóa @RequestParam
+            @PathVariable @NotBlank(message = "INVALID_COURSE_ID") String courseId) {
         
         String studentId = getLoggedInStudentId();
         logger.info("Request to enroll student {} in course {}", studentId, courseId);
@@ -74,7 +65,7 @@ public class EnrollmentController {
     }
   
     @GetMapping("/users/me/courses")
-    public ResponseEntity<ApiResponse<List<EnrollmentResponse>>> getMyCourses() { // Xóa @RequestParam
+    public ResponseEntity<ApiResponse<List<EnrollmentResponse>>> getMyCourses() {
         String studentId = getLoggedInStudentId();
         
         List<EnrollmentResponse> myCourses = enrollmentService.getMyCourses(studentId);
@@ -90,7 +81,7 @@ public class EnrollmentController {
     @GetMapping("/users/me/courses-paginated")
     public ResponseEntity<ApiResponse<PagedEnrollmentResponse>> getMyCoursePaginated(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) { // Xóa @RequestParam studentId
+            @RequestParam(defaultValue = "10") int size) {
         
         String studentId = getLoggedInStudentId();
         PagedEnrollmentResponse myCourses = enrollmentService.getMyCoursesPaginated(studentId, page, size);

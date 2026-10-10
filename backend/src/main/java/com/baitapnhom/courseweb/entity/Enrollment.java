@@ -30,7 +30,7 @@ public class Enrollment {
     private EnrollmentStatus status = EnrollmentStatus.ACTIVE;
 
     @CreationTimestamp
-    @Column(name = "enroll_date", updatable = false)
+    @Column(name = "enroll_date", insertable = false, updatable = false)
     private LocalDateTime enrollDate;
 
     public Enrollment() {

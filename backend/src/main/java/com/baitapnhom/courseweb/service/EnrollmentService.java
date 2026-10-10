@@ -2,59 +2,48 @@ package com.baitapnhom.courseweb.service;
 
 import com.baitapnhom.courseweb.entity.Course;
 import com.baitapnhom.courseweb.entity.Enrollment;
-import com.baitapnhom.courseweb.entity.Student;
-
+import com.baitapnhom.courseweb.entity.User;
 import com.baitapnhom.courseweb.enums.EnrollmentStatus;
-
-import com.baitapnhom.courseweb.repository.CourseRepository;
-import com.baitapnhom.courseweb.repository.EnrollmentRepository;
-import com.baitapnhom.courseweb.repository.StudentRepository;
-
-import com.baitapnhom.courseweb.dto.response.EnrollmentResponse;
-import com.baitapnhom.courseweb.dto.response.PagedEnrollmentResponse;
 import com.baitapnhom.courseweb.enums.CourseStatus;
 import com.baitapnhom.courseweb.exception.AppException;
 import com.baitapnhom.courseweb.exception.ErrorCode;
+import com.baitapnhom.courseweb.repository.CourseRepository;
+import com.baitapnhom.courseweb.repository.EnrollmentRepository;
+import com.baitapnhom.courseweb.repository.UserRepository;
+import com.baitapnhom.courseweb.dto.response.EnrollmentResponse;
+import com.baitapnhom.courseweb.dto.response.PagedEnrollmentResponse;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-//import org.springframework.security.access.prepost.PreAuthorize;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Service class xử lý logic đăng ký khóa học
- * 
- * Trách nhiệm:
- * - Xử lý đăng ký sinh viên vào khóa học
- * - Quản lý trạng thái đăng ký
- * - Lấy danh sách khóa học của sinh viên
  */
 @Service
 public class EnrollmentService {
     private static final Logger logger = LoggerFactory.getLogger(EnrollmentService.class);
     
-    // Dependency injection qua constructor
     private final EnrollmentRepository enrollmentRepository;
     private final CourseRepository courseRepository;
-    private final StudentRepository studentRepository;
+    private final UserRepository userRepository;
 
     public EnrollmentService(EnrollmentRepository enrollmentRepository,
                              CourseRepository courseRepository,
-                             StudentRepository studentRepository) {
+                             UserRepository userRepository) {
         this.enrollmentRepository = enrollmentRepository;
         this.courseRepository = courseRepository;
-        this.studentRepository = studentRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -74,38 +63,35 @@ public class EnrollmentService {
         logger.info("Student {} attempting to enroll in course {}", studentId, courseId);
         
         try {
-            // Bước 1: Kiểm tra input từ Controller đã validate rồi
-            // Nhưng vẫn double-check để an toàn
-            
-            // Bước 2: Tìm sinh viên
-            Student student = studentRepository.findById(studentId)
+            // Bước 1: Tìm người dùng theo ID (đóng vai trò là student)
+            User student = userRepository.findById(studentId)
                 .orElseThrow(() -> {
-                    logger.error("Student not found: {}", studentId);
+                    logger.error("User/Student not found: {}", studentId);
                     return new AppException(ErrorCode.USER_NOT_EXISTED);
                 });
 
-            // Bước 3: Tìm khóa học
+            // Bước 2: Tìm khóa học
             Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> {
                     logger.error("Course not found: {}", courseId);
                     return new AppException(ErrorCode.COURSE_NOT_FOUND);
                 });
             
-            // Bước 4: Kiểm tra khóa học có PUBLISHED không
+            // Bước 3: Kiểm tra khóa học có PUBLISHED không
             if (course.getStatus() == null || course.getStatus() != CourseStatus.PUBLISHED) {
                 logger.warn("Course {} status is {}, cannot enroll", courseId, course.getStatus());
                 throw new AppException(ErrorCode.COURSE_NOT_ACTIVE);
             }
             
-            // Bước 5: Kiểm tra giá khóa học hợp lệ
+            // Bước 4: Kiểm tra giá khóa học hợp lệ
             if (course.getPrice() == null || course.getPrice().signum() < 0) {
                 logger.error("Invalid course price for course {}: {}", courseId, course.getPrice());
                 throw new AppException(ErrorCode.INVALID_COURSE_PRICE);
             }
 
-            // Bước 6: Xử lý enrollment hiện tại
+            // Bước 5: Xử lý enrollment hiện tại
             Optional<Enrollment> optionalEnrollment = enrollmentRepository
-                .findByStudentStudentIdAndCourseId(studentId, courseId);
+                .findByStudentIdAndCourseId(studentId, courseId);
 
             if (optionalEnrollment.isPresent()) {
                 Enrollment existingEnrollment = optionalEnrollment.get();
@@ -131,7 +117,7 @@ public class EnrollmentService {
                 }
             }
 
-            // Bước 7: Tạo enrollment mới
+            // Bước 6: Tạo enrollment mới với User làm student
             Enrollment newEnrollment = new Enrollment(student, course, EnrollmentStatus.ACTIVE);
             newEnrollment = enrollmentRepository.save(newEnrollment);
 
@@ -149,35 +135,29 @@ public class EnrollmentService {
         }
     }
 
-    /**
-     * Helper method: Chuyển đổi Enrollment entity thành EnrollmentResponse DTO
-     * 
-     * Lợi ích: 
-     * - Tập trung logic mapping 1 chỗ
-     * - Dễ bảo trì khi thay đổi DTO
-     * - Tuân theo DRY principle
-     */
+    // Helper method: Chuyển đổi Enrollment entity thành EnrollmentResponse DTO
+
     private EnrollmentResponse mapToResponse(Enrollment enrollment) {
         return new EnrollmentResponse(
             enrollment.getId(),
+            enrollment.getStudent().getId(),
+            enrollment.getStudent().getFullName(),
+            enrollment.getStudent().getEmail(),
+            enrollment.getCourse().getId(),
             enrollment.getCourse().getTitle(),
-            enrollment.getStudent().getUser().getFullName(),
-            enrollment.getStudent().getUser().getEmail(),
             enrollment.getStatus().name(),
             enrollment.getEnrollDate()
         );
     }
 
-    /**
-     * Lấy danh sách tất cả khóa học của sinh viên (không phân trang)
-     */
+    // Lấy danh sách tất cả khóa học của học viên (không phân trang)
     @Transactional(readOnly = true)
     public List<EnrollmentResponse> getMyCourses(String studentId) {
         logger.info("Fetching all courses for student {}", studentId);
         
         try {
             List<Enrollment> enrollments = enrollmentRepository
-                .findByStudentStudentIdOrderByEnrollDateDesc(studentId);
+                .findByStudentIdOrderByEnrollDateDesc(studentId);
             
             logger.info("Found {} courses for student {}", enrollments.size(), studentId);
             
@@ -191,40 +171,24 @@ public class EnrollmentService {
         }
     }
 
-    /**
-     * Lấy danh sách khóa học của sinh viên (có phân trang)
-     * 
-     * Tham số:
-     * - studentId: ID sinh viên
-     * - page: Trang (bắt đầu từ 0)
-     * - size: Số bản ghi trên 1 trang
-     */
+    // Lấy danh sách khóa học của học viên (có phân trang)
+
     @Transactional(readOnly = true)
     public PagedEnrollmentResponse getMyCoursesPaginated(String studentId, int page, int size) {
         logger.info("Fetching paginated courses for student {} - page: {}, size: {}", 
                    studentId, page, size);
         
         try {
-            // Validate và normalize pagination parameters
-            if (page < 0) {
-                logger.warn("Invalid page number: {}, setting to 0", page);
-                page = 0;
-            }
-            if (size <= 0) {
-                logger.warn("Invalid size: {}, setting to 10", size);
-                size = 10;
-            }
-            if (size > 50) {
-                logger.warn("Size {} exceeds max 50, limiting to 50", size);
-                size = 50;  // Giới hạn tối đa 50 items/page
-            }
+            if (page < 0) page = 0;
+            if (size <= 0) size = 10;
+            if (size > 50) size = 50;
 
             // Tạo Pageable object với sort theo enrollDate giảm dần
             Pageable pageable = PageRequest.of(page, size, Sort.by("enrollDate").descending());
             
             // Lấy data từ DB
             Page<Enrollment> enrollmentPage = enrollmentRepository
-                .findByStudentStudentId(studentId, pageable);
+                .findByStudentId(studentId, pageable);
 
             // Convert entities to DTOs
             List<EnrollmentResponse> responses = enrollmentPage.getContent().stream()
@@ -249,14 +213,12 @@ public class EnrollmentService {
         }
     }
 
-    /**
-     * Kiểm tra xem sinh viên đã đăng ký khóa học này chưa
-     */
+    // Kiểm tra xem học viên đã đăng ký khóa học này chưa
+    
     @Transactional(readOnly = true)
     public boolean checkEnrollmentStatus(String studentId, String courseId) {
         logger.debug("Checking enrollment status for student {} in course {}", studentId, courseId);
-        // Thay vì chỉ check tồn tại, giờ check xem có đang ACTIVE không
-        return enrollmentRepository.existsByStudentStudentIdAndCourseIdAndStatus(studentId, courseId, EnrollmentStatus.ACTIVE);
+        return enrollmentRepository.existsByStudentIdAndCourseIdAndStatus(studentId, courseId, EnrollmentStatus.ACTIVE);
     }
 
     /**
@@ -265,7 +227,6 @@ public class EnrollmentService {
      * - Không thể hủy khóa học đã hoàn thành (COMPLETED)
      * - Khóa học phải tồn tại
      */
-    //@PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void cancelEnrollment(String studentId, String courseId) {
         logger.info("Student {} canceling enrollment in course {}", studentId, courseId);
@@ -273,7 +234,7 @@ public class EnrollmentService {
         try {
             // Tìm enrollment
             Enrollment enrollment = enrollmentRepository
-                .findByStudentStudentIdAndCourseId(studentId, courseId)
+                .findByStudentIdAndCourseId(studentId, courseId)
                 .orElseThrow(() -> {
                     logger.error("Enrollment not found for student {} in course {}", studentId, courseId);
                     return new AppException(ErrorCode.ENROLLMENT_NOT_FOUND);
@@ -301,7 +262,6 @@ public class EnrollmentService {
     }
 
     // Lấy thông tin chi tiết enrollment theo ID
-    // BẢO MẬT: Kiểm tra xem enrollment này có thuộc student đó không
     @Transactional(readOnly = true)
     public EnrollmentResponse getEnrollmentById(String enrollmentId, String studentId) {
         logger.info("Fetching enrollment {} for student {}", enrollmentId, studentId);
@@ -314,9 +274,8 @@ public class EnrollmentService {
                     return new AppException(ErrorCode.ENROLLMENT_NOT_FOUND);
                 });
 
-            // BẢO MẬT: Kiểm tra quyền
-            // Sinh viên chỉ có thể xem enrollment của chính họ
-            if (!enrollment.getStudent().getStudentId().equals(studentId)) {
+            // BẢO MẬT: Sinh viên chỉ có thể xem enrollment của chính họ (so sánh user id)
+            if (!enrollment.getStudent().getId().equals(studentId)) {
                 logger.warn("Unauthorized access to enrollment {} by student {}", enrollmentId, studentId);
                 throw new AppException(ErrorCode.UNAUTHORIZED);
             }
