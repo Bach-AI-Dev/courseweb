@@ -4,11 +4,13 @@ import com.baitapnhom.courseweb.dto.request.CourseRequest;
 import com.baitapnhom.courseweb.dto.response.CourseResponse;
 import com.baitapnhom.courseweb.entity.Category;
 import com.baitapnhom.courseweb.entity.Course;
+import com.baitapnhom.courseweb.entity.User;
 import com.baitapnhom.courseweb.enums.CourseStatus;
 import com.baitapnhom.courseweb.exception.AppException;
 import com.baitapnhom.courseweb.exception.ErrorCode;
 import com.baitapnhom.courseweb.repository.CategoryRepository;
 import com.baitapnhom.courseweb.repository.CourseRepository;
+import com.baitapnhom.courseweb.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -24,15 +26,20 @@ public class CourseService {
 
     @Autowired
     private CategoryRepository categoryRepository;
-    // 1. Tạo mới khóa học
-    // Phân quyền Teacher vs admin mới có thể tạo Course
+
+    @Autowired
+    private UserRepository userRepository;
+
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public CourseResponse createCourse(CourseRequest request) {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
+        User teacher = userRepository.findById(request.getTeacherId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
         Course course = new Course();
-        course.setTeacherId(request.getTeacherId());
+        course.setTeacher(teacher);
         course.setTitle(request.getTitle());
         course.setDescription(request.getDescription());
         course.setThumbnailUrl(request.getThumbnailUrl());
@@ -44,7 +51,6 @@ public class CourseService {
         return toResponse(saved);
     }
 
-    // 2. Lấy toàn bộ danh sách
     public List<CourseResponse> getAllCourses() {
         List<CourseResponse> responses = new ArrayList<>();
         for (Course course : courseRepository.findAll()) {
@@ -53,13 +59,11 @@ public class CourseService {
         return responses;
     }
 
-    // 3. Lấy chi tiết theo ID
     public CourseResponse getCourseById(String id) {
         Course course = findCourseById(id);
         return toResponse(course);
     }
-    
-    // 4. Cập nhật khóa học
+
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public CourseResponse updateCourse(String id, CourseRequest request) {
         Course course = findCourseById(id);
@@ -84,12 +88,16 @@ public class CourseService {
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
             course.setCategory(category);
         }
+        if (request.getTeacherId() != null) {
+            User teacher = userRepository.findById(request.getTeacherId())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+            course.setTeacher(teacher);
+        }
 
         Course saved = courseRepository.save(course);
         return toResponse(saved);
     }
-    
-    // 5. Xóa khóa học
+
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteCourse(String id) {
         Course course = findCourseById(id);
@@ -105,17 +113,17 @@ public class CourseService {
         courseRepository.delete(course);
     }
 
-    // Hàm nội bộ tìm Course theo ID
     private Course findCourseById(String id) {
         return courseRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
     }
 
-    // Map Entity -> DTO Response
     private CourseResponse toResponse(Course course) {
         CourseResponse response = new CourseResponse();
         response.setId(course.getId());
-        response.setTeacherId(course.getTeacherId());
+        if (course.getTeacher() != null) {
+            response.setTeacherId(course.getTeacher().getId());
+        }
         response.setTitle(course.getTitle());
         response.setDescription(course.getDescription());
         response.setThumbnailUrl(course.getThumbnailUrl());
