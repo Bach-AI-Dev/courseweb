@@ -1,63 +1,78 @@
 import { useEffect, useRef } from "react";
-
-function toYouTubeEmbed(url) {
-  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([\w-]{11})/);
-  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
-}
+import ReactPlayer from "react-player";
 
 const REPORT_EVERY = 10; // gửi tiến độ mỗi 10 giây xem
 
-/**
- * Với file video (.mp4...): đếm số giây thực sự xem (bỏ qua tua) và báo về backend
- * qua onProgress({ timeDelta, lastPosition }). Link YouTube chỉ phát, không theo dõi được tiến độ.
- */
 export default function VideoPlayer({ src, title, startAt = 0, onProgress }) {
-  const embed = toYouTubeEmbed(src);
+  const playerRef = useRef(null);
   const pending = useRef(0); // giây đã xem nhưng chưa gửi
-  const last = useRef(0); // mốc thời gian lần timeupdate trước
-  const position = useRef(0); // vị trí hiện tại (giây)
+  const last = useRef(startAt); // mốc thời gian lần update trước
+  const position = useRef(startAt); // vị trí hiện tại (giây)
   const report = useRef(onProgress);
+
+  // Luôn giữ tham chiếu đến hàm onProgress mới nhất
   report.current = onProgress;
 
   const flush = () => {
     const delta = Math.floor(pending.current);
     if (delta < 1) return;
     pending.current -= delta;
-    report.current?.({ timeDelta: delta, lastPosition: Math.floor(position.current) });
+    report.current?.({
+      timeDelta: delta,
+      lastPosition: Math.floor(position.current),
+    });
   };
 
-  // Rời trang bài học thì gửi nốt phần chưa báo.
-  useEffect(() => flush, []);
+  // Gửi nốt tiến độ khi người dùng rời khỏi trang bài học
+  useEffect(() => {
+    return () => flush();
+  }, []);
 
-  if (embed) {
-    return (
-      <div className="player">
-        <iframe src={embed} title={title} allow="encrypted-media; picture-in-picture" allowFullScreen />
-      </div>
-    );
-  }
+  // Đổi video (src khác) thì reset bộ đếm
+  useEffect(() => {
+    pending.current = 0;
+    last.current = startAt;
+    position.current = startAt;
+  }, [src, startAt]);
 
   return (
-    <div className="player">
-      <video
-        src={src}
+    <div
+      className="player"
+      style={{ aspectRatio: "16/9", backgroundColor: "#000" }}
+    >
+      <ReactPlayer
+        ref={playerRef}
+        src={src} // v3: dùng "src" thay cho "url"
+        title={title}
         controls
-        preload="metadata"
-        onLoadedMetadata={(e) => {
-          const v = e.currentTarget;
-          if (startAt > 0 && startAt < v.duration - 2) v.currentTime = startAt; // xem tiếp từ chỗ đã dừng
-          last.current = v.currentTime;
-          position.current = v.currentTime;
+        width="100%"
+        height="100%"
+        // v3: thay cho onReady + seekTo()
+        onLoadedMetadata={() => {
+          const el = playerRef.current;
+          if (startAt > 0 && el) {
+            el.currentTime = startAt;
+          }
         }}
+        // v3: thay cho onProgress
         onTimeUpdate={(e) => {
           const t = e.currentTarget.currentTime;
           const d = t - last.current;
-          if (d > 0 && d < 2) pending.current += d; // d lớn = người dùng tua, không tính
+
+          // Chống tua video: chỉ cộng dồn khi khoảng cách giữa 2 lần
+          // cập nhật nhỏ hơn 2 giây. Tua tới (d >= 2) hoặc lùi (d < 0) thì bỏ qua.
+          if (d > 0 && d < 2) {
+            pending.current += d;
+          }
+
           last.current = t;
           position.current = t;
-          if (pending.current >= REPORT_EVERY) flush();
+
+          // Đủ số giây quy định thì gửi dữ liệu về backend
+          if (pending.current >= REPORT_EVERY) {
+            flush();
+          }
         }}
-        onSeeked={(e) => (last.current = e.currentTarget.currentTime)}
         onPause={flush}
         onEnded={flush}
       />
