@@ -27,7 +27,7 @@ public class ApplicationInitConfig {
                 user.setEmail("admin@gmail.com");
 
                 // Mã hóa mật khẩu
-                user.setPassword(passwordEncoder.encode("admin_kieu_thanh_dat"));
+                user.setPassword(passwordEncoder.encode("admin123"));
 
                 // Gán quyền 
                 user.setRole(Role.ADMIN);
