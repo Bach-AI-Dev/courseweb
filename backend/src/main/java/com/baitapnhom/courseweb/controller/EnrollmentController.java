@@ -1,5 +1,6 @@
 package com.baitapnhom.courseweb.controller;
 
+import com.baitapnhom.courseweb.dto.request.EnrollmentRequest;
 import com.baitapnhom.courseweb.service.EnrollmentService;
 import com.baitapnhom.courseweb.repository.UserRepository;
 import com.baitapnhom.courseweb.entity.User;
@@ -9,6 +10,7 @@ import com.baitapnhom.courseweb.dto.response.EnrollmentResponse;
 import com.baitapnhom.courseweb.dto.response.ApiResponse;
 import com.baitapnhom.courseweb.dto.response.PagedEnrollmentResponse;
 import com.baitapnhom.courseweb.enums.EnrollmentStatus;
+import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -161,9 +163,9 @@ public class EnrollmentController {
     @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> updateEnrollmentStatus(
             @PathVariable String enrollmentId,
-            @RequestParam EnrollmentStatus status) {
+            @RequestBody @Valid EnrollmentRequest request) {
 
-        EnrollmentResponse result = enrollmentService.updateEnrollmentStatus(enrollmentId, status);
+        EnrollmentResponse result = enrollmentService.updateEnrollmentStatus(enrollmentId, request.getStatus());
 
         ApiResponse<EnrollmentResponse> response = new ApiResponse<>();
         response.setCode(1000);
@@ -172,7 +174,7 @@ public class EnrollmentController {
 
         return ResponseEntity.ok(response);
     }
-    
+
     // Admin : xóa dữ liệu đăng ký khóa học của học viên
     @DeleteMapping("/admin/enrollments/{enrollmentId}")
     @PreAuthorize("hasRole('ADMIN')")
