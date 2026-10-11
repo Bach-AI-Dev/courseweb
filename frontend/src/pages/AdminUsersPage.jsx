@@ -85,9 +85,6 @@ export default function AdminUsersPage() {
             </button>
           ))}
         </div>
-        <div className="toolbar">
-          <input type="search" placeholder="Tìm theo tên đăng nhập, họ tên, email, số điện thoại" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </div>
 
         <LoadState loading={users.loading} error={users.error} openAuth={openAuth} />
         {error && <p className="state state--error" role="alert">{error}</p>}
