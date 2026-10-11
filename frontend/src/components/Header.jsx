@@ -25,7 +25,12 @@ export default function Header({ user, onOpenAuth, onLogout }) {
               {user.role === "STUDENT" && (
                 <Link to="/khoa-hoc-cua-toi" onClick={() => setOpen(false)}>Khóa học của tôi</Link>
               )}
-              <span className="who">Xin chào, <b>{user.fullName || user.username}</b> ({ROLE_LABEL[user.role] || user.role})</span>
+              {user.role === "ADMIN" && (
+                <Link to="/quan-ly-nguoi-dung" onClick={() => setOpen(false)}>Quản lý người dùng</Link>
+              )}
+              <Link className="who" to="/tai-khoan" title="Xem tài khoản" onClick={() => setOpen(false)}>
+                Xin chào, <b>{user.fullName || user.username}</b> ({ROLE_LABEL[user.role] || user.role})
+              </Link>
               <button className="btn alt" onClick={onLogout}>Đăng xuất</button>
             </>
           ) : (

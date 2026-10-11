@@ -5,6 +5,8 @@ import CoursesPage from "./pages/CoursesPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
 import LessonPage from "./pages/LessonPage";
 import MyCoursesPage from "./pages/MyCoursesPage";
+import ProfilePage from "./pages/ProfilePage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
@@ -16,6 +18,8 @@ export default function App() {
         <Route path="khoa-hoc/:courseId" element={<CourseDetailPage />} />
         <Route path="khoa-hoc/:courseId/bai-hoc/:lessonId" element={<LessonPage />} />
         <Route path="khoa-hoc-cua-toi" element={<MyCoursesPage />} />
+        <Route path="tai-khoan" element={<ProfilePage />} />
+        <Route path="quan-ly-nguoi-dung" element={<AdminUsersPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

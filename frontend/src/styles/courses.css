@@ -297,3 +297,22 @@ div.state { display: grid; gap: 12px; justify-items: start; }
 .members th, .members td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .members th { color: #4b6073; font-weight: 600; }
 .members td:last-child { min-width: 160px; }
+/* Tài khoản và quản lý người dùng */
+.profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; }
+.panel h2 { margin: 0 0 14px; font-size: 18px; }
+.info-list { display: grid; grid-template-columns: 150px 1fr; gap: 8px 14px; margin: 0; }
+.info-list dt { color: #4b6073; }
+.info-list dd { margin: 0; word-break: break-word; }
+.notice { margin: 0; padding: 8px 12px; border-radius: 6px; background: #e6f4ea; color: #1f6b3a; font-size: 14px; }
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.toolbar input { max-width: 380px; }
+.role-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--sky); color: var(--sea); }
+.role-badge--ADMIN { background: #f3d9d6; color: #8f1d17; }
+.role-badge--TEACHER { background: #f2e3b3; color: #6b5200; }
+.mini:disabled { opacity: 0.4; cursor: not-allowed; }
+
+@media (max-width: 860px) {
+  .profile-grid { grid-template-columns: 1fr; }
+  .info-list { grid-template-columns: 120px 1fr; }
+}
