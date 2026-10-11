@@ -290,3 +290,10 @@ div.state { display: grid; gap: 12px; justify-items: start; }
 .assignment .section-title { margin: 0 0 12px; }
 .assignment .state { padding: 0; }
 .badge--info { background: var(--sky); color: var(--sea); }
+
+/* Bảng tiến độ học viên (ADMIN) */
+.table-wrap { overflow-x: auto; }
+.members { width: 100%; border-collapse: collapse; }
+.members th, .members td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.members th { color: #4b6073; font-weight: 600; }
+.members td:last-child { min-width: 160px; }

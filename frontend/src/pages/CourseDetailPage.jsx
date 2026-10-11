@@ -12,6 +12,7 @@ import CourseFormModal from "../components/CourseFormModal";
 import LessonFormModal from "../components/LessonFormModal";
 import LessonList from "../components/LessonList";
 import LoadState from "../components/LoadState";
+import CourseMembersProgress from "../components/CourseMembersProgress";
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
@@ -20,6 +21,7 @@ export default function CourseDetailPage() {
   const uid = auth.user?.id;
   const staff = isStaff(auth.user); // ADMIN, TEACHER: quản lý nội dung, không cần đăng ký học
   const student = auth.user?.role === "STUDENT";
+  const isAdmin = auth.user?.role === "ADMIN"; // chỉ ADMIN xem được tiến độ cả lớp
 
   const course = useAsync(() => getCourse(courseId), [courseId, uid]);
   const lessons = useAsync(() => getLessons(courseId), [courseId, uid]);
@@ -128,8 +130,11 @@ export default function CourseDetailPage() {
             progressMap={progressMap}
             onEdit={staff ? (l) => setLessonModal({ lesson: l }) : undefined}
             onDelete={staff ? handleDeleteLesson : undefined}
+
           />
         )}
+
+        {isAdmin && <CourseMembersProgress courseId={courseId} openAuth={openAuth} />}
       </div>
 
       {editingCourse && (
@@ -150,5 +155,6 @@ export default function CourseDetailPage() {
         />
       )}
     </div>
+    
   );
 }

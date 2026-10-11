@@ -1,4 +1,4 @@
-# CourseWeb (React + Vite) nối backend Spring Boot
+# Mapstudy / CourseWeb (React + Vite) nối backend Spring Boot
 
 ```bash
 npm install
