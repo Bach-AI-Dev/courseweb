@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface EnrollmentRepository extends JpaRepository<Enrollment, String> {
@@ -25,7 +27,18 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, String> 
     
     // Phân trang danh sách đăng ký của học viên
     Page<Enrollment> findByStudentId(String studentId, Pageable pageable);
+    
+    // Tìm kiếm danh sách đăng ký của học viên theo trạng thái
     List<Enrollment> findByCourseIdAndStatusNot(String courseId, EnrollmentStatus status);
+    
     // Kiểm tra theo trạng thái đăng ký
     boolean existsByStudentIdAndCourseIdAndStatus(String studentId, String courseId, EnrollmentStatus status);
+    
+    // Xóa dữ liệu đăng ký
+    @Modifying
+    @Transactional
+    void deleteByStudentIdAndCourseId(String studentId, String courseId);
+    
+    // Tìm danh sách đăng ký của một khóa học (cho Teacher/Admin)
+    List<Enrollment> findByCourseIdOrderByEnrollDateDesc(String courseId);
 }

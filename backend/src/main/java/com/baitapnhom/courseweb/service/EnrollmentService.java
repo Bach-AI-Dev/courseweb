@@ -291,4 +291,32 @@ public class EnrollmentService {
             throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
         }
     }
+    
+    // Lấy danh sách học viên trong 1 khóa học (Teacher/Admin)
+    @Transactional(readOnly = true)
+    public List<EnrollmentResponse> getEnrollmentsByCourseId(String courseId) {
+        List<Enrollment> enrollments = enrollmentRepository.findByCourseIdOrderByEnrollDateDesc(courseId);
+        return enrollments.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    // Cập nhật trạng thái đăng ký thủ công (Teacher/Admin)
+    @Transactional
+    public EnrollmentResponse updateEnrollmentStatus(String enrollmentId, EnrollmentStatus status) {
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new AppException(ErrorCode.ENROLLMENT_NOT_FOUND));
+
+        enrollment.setStatus(status);
+        Enrollment saved = enrollmentRepository.save(enrollment);
+        return mapToResponse(saved);
+    }
+    
+    // Xóa dữ liệu đăng ký thủ công (admin)
+        
+    @Transactional
+    public void deleteEnrollmentById(String enrollmentId) {
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new AppException(ErrorCode.ENROLLMENT_NOT_FOUND));
+
+        enrollmentRepository.delete(enrollment);
+    }
 }

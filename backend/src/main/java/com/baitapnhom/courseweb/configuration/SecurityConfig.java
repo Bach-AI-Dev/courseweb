@@ -29,16 +29,7 @@ public class SecurityConfig {
     private final String[] PUBLIC_POST_ENDPOINTS = {
             "/api/auth/register",
             "/api/auth/login",
-            "/api/auth/introspect",
-            "/api/v1/progress/update"
-    };
-
-    private final String[] PUBLIC_GET_ENDPOINTS = {
-            "/api/courses",
-            "/api/courses/**",
-            "/api/categories",
-            "/api/categories/**",
-             "/api/lessons/**"
+            "/api/auth/introspect"
     };
 
     @Value("${jwt.signerKey}")
@@ -52,7 +43,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
 
                 // 2. Cho phép mọi người XEM khóa học và danh mục không cần Token
-                .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
+                //.requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
 
                 // 3. Phân quyền User
                 // .requestMatchers(HttpMethod.GET, "/api/users").hasRole(Role.ADMIN.name())

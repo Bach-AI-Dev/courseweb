@@ -8,6 +8,7 @@ import com.baitapnhom.courseweb.exception.ErrorCode;
 import com.baitapnhom.courseweb.dto.response.EnrollmentResponse;
 import com.baitapnhom.courseweb.dto.response.ApiResponse;
 import com.baitapnhom.courseweb.dto.response.PagedEnrollmentResponse;
+import com.baitapnhom.courseweb.enums.EnrollmentStatus;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api")
@@ -136,5 +138,50 @@ public class EnrollmentController {
         response.setResult(enrollment);
         
         return ResponseEntity.ok(response);
+    }
+    
+    // Teacher/Admin: Xem danh sách tất cả học viên đăng ký trong 1 khóa học
+    @GetMapping("/courses/{courseId}/enrollments")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<EnrollmentResponse>>> getEnrollmentsByCourse(
+            @PathVariable String courseId) {
+
+        List<EnrollmentResponse> list = enrollmentService.getEnrollmentsByCourseId(courseId);
+
+        ApiResponse<List<EnrollmentResponse>> response = new ApiResponse<>();
+        response.setCode(1000);
+        response.setMessage("Lấy danh sách học viên của khóa học thành công");
+        response.setResult(list);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // Admin/Teacher: Cập nhật trạng thái đăng ký (ACTIVE -> COMPLETED / CANCELED)
+    @PutMapping("/admin/enrollments/{enrollmentId}/status")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<EnrollmentResponse>> updateEnrollmentStatus(
+            @PathVariable String enrollmentId,
+            @RequestParam EnrollmentStatus status) {
+
+        EnrollmentResponse result = enrollmentService.updateEnrollmentStatus(enrollmentId, status);
+
+        ApiResponse<EnrollmentResponse> response = new ApiResponse<>();
+        response.setCode(1000);
+        response.setMessage("Cập nhật trạng thái đăng ký thành công");
+        response.setResult(result);
+
+        return ResponseEntity.ok(response);
+    }
+    
+    // Admin : xóa dữ liệu đăng ký khóa học của học viên
+    @DeleteMapping("/admin/enrollments/{enrollmentId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> deleteEnrollment(@PathVariable String enrollmentId) {
+
+        enrollmentService.deleteEnrollmentById(enrollmentId);
+
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setResult("Xóa dữ liệu đăng ký khóa học thành công!");
+        return apiResponse;
     }
 }
