@@ -291,12 +291,6 @@ div.state { display: grid; gap: 12px; justify-items: start; }
 .assignment .state { padding: 0; }
 .badge--info { background: var(--sky); color: var(--sea); }
 
-/* Bảng tiến độ học viên (ADMIN) */
-.table-wrap { overflow-x: auto; }
-.members { width: 100%; border-collapse: collapse; }
-.members th, .members td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.members th { color: #4b6073; font-weight: 600; }
-.members td:last-child { min-width: 160px; }
 /* Tài khoản và quản lý người dùng */
 .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
 .panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; }
@@ -316,3 +310,13 @@ div.state { display: grid; gap: 12px; justify-items: start; }
   .profile-grid { grid-template-columns: 1fr; }
   .info-list { grid-template-columns: 120px 1fr; }
 }
+
+/* Bảng tiến độ học viên (ADMIN / TEACHER) */
+.table-wrap { overflow-x: auto; }
+.members { width: 100%; border-collapse: collapse; }
+.members th, .members td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.members th { color: #4b6073; font-weight: 600; }
+.members td:last-child { min-width: 160px; }
+.members-search { width: 100%; max-width: 360px; margin: 12px 0; }
+
+

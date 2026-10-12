@@ -11,12 +11,16 @@ import com.baitapnhom.courseweb.exception.ErrorCode;
 import com.baitapnhom.courseweb.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.time.LocalDateTime; // THÊM DÒNG NÀY ĐỂ IMPORT THỜI GIAN
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+
 
 @Service
 @Transactional
@@ -27,16 +31,18 @@ public class LessonProgressImpl implements ILessonProgressService {
     private final UserRepository userRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final LessonRepository lessonRepository;
+    private final CourseRepository courseRepository;
 
     public LessonProgressImpl(LessonProgressRepository progressRepository,
                               VideoLessonsRepository videoRepository,
                               UserRepository userRepository,
-                              EnrollmentRepository enrollmentRepository, LessonRepository lessonRepository) {
+                              EnrollmentRepository enrollmentRepository, LessonRepository lessonRepository, CourseRepository courseRepository) {
         this.progressRepository = progressRepository;
         this.videoRepository = videoRepository;
         this.userRepository = userRepository;
         this.enrollmentRepository = enrollmentRepository;
         this.lessonRepository = lessonRepository;
+        this.courseRepository = courseRepository;
     }
 
     @Override
@@ -206,9 +212,28 @@ public class LessonProgressImpl implements ILessonProgressService {
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
-    public List<CourseMemberProgressResponse> getCourseMembersProgress(String courseId) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public List<CourseMemberProgressResponse> getCourseMembersProgress(String courseId,String keyword) {
+
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN"));
+
+        // 2. Nếu người gọi API không phải ADMIN (tức là TEACHER), thì phải kiểm tra sở hữu
+        if (!isAdmin) {
+            Course course = courseRepository.findById(courseId)
+                    .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+            // authentication.getName() thường trả về Username/Email hoặc ID tùy cách bạn cấu hình JWT
+            String currentUsername = authentication.getName();   // sub của JWT = username
+
+            if (!course.getTeacher().getUsername().equals(currentUsername)) {
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+        }
+
         int totalLessons = lessonRepository.countByCourseId(courseId);
+        String q = normalize(keyword);
 
         List<Enrollment> enrollments =
                 enrollmentRepository.findByCourseIdAndStatusNot(courseId, EnrollmentStatus.CANCELED);
@@ -216,6 +241,13 @@ public class LessonProgressImpl implements ILessonProgressService {
         List<CourseMemberProgressResponse> result = new ArrayList<>();
         for (Enrollment e : enrollments) {
             User s = e.getStudent();
+
+            // Lọc theo tên hoặc email trước khi đếm tiến độ để đỡ tốn query
+            if (!q.isEmpty()
+                    && !normalize(s.getFullName()).contains(q)
+                    && !normalize(s.getEmail()).contains(q)) {
+                continue;
+            }
 
             int completed = progressRepository
                     .countByStudentIdAndLessonCourseIdAndIsCompletedTrue(s.getId(), courseId);
@@ -227,5 +259,15 @@ public class LessonProgressImpl implements ILessonProgressService {
                     s.getId(), s.getFullName(), s.getEmail(), totalLessons, completed, percent));
         }
         return result;
+    }
+
+    // Bỏ dấu tiếng Việt và chữ hoa để "duc" cũng tìm ra "Đức"
+    private static String normalize(String s) {
+        if (s == null) return "";
+        return Normalizer.normalize(s, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace('đ', 'd').replace('Đ', 'D')
+                .toLowerCase(Locale.ROOT)
+                .trim();
     }
 }

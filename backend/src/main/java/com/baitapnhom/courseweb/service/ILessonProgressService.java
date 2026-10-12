@@ -15,6 +15,6 @@ public interface ILessonProgressService {
 
     LessonProgressResponse getLessonProgress(String lessonId, String studentId);
 
-    List<CourseMemberProgressResponse> getCourseMembersProgress(String courseId);
+    List<CourseMemberProgressResponse> getCourseMembersProgress(String courseId, String keyword);
 }
 

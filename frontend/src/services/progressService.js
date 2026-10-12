@@ -6,5 +6,7 @@ export const updateProgress = ({ lessonId, timeDelta, lastPosition }) =>
 
 export const getCourseProgress = (courseId) => api(`/v1/progress/courses/${courseId}/progress`);
 export const getLessonProgress = (lessonId) => api(`/v1/progress/lessons/${lessonId}/progress`);
-// Chỉ ADMIN: tiến độ của tất cả học viên trong một khóa học.
-export const getCourseMembersProgress = (courseId) => api(`/v1/progress/courses/${courseId}/members`);
+
+// ADMIN, hoặc TEACHER của khóa học: tiến độ của tất cả học viên trong khóa.
+export const getCourseMembersProgress = (courseId, keyword = "") =>
+    api(`/v1/progress/courses/${courseId}/members${keyword ? `?keyword=${encodeURIComponent(keyword)}` : ""}`);

@@ -80,8 +80,9 @@ public class LessonProgressController {
 
     @GetMapping("/courses/{courseId}/members")
     public ResponseEntity<List<CourseMemberProgressResponse>> getCourseMembersProgress(
-            @PathVariable String courseId) {
-        return ResponseEntity.ok(progressService.getCourseMembersProgress(courseId));
+            @PathVariable String courseId,
+            @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(progressService.getCourseMembersProgress(courseId, keyword));
     }
 }
 

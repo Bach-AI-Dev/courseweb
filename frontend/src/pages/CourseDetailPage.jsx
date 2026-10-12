@@ -14,6 +14,7 @@ import LessonList from "../components/LessonList";
 import LoadState from "../components/LoadState";
 import CourseMembersProgress from "../components/CourseMembersProgress";
 
+
 export default function CourseDetailPage() {
   const { courseId } = useParams();
   const { auth, openAuth } = useOutletContext();
@@ -75,6 +76,8 @@ export default function CourseDetailPage() {
   }
 
   const c = course.data;
+  // ADMIN xem mọi lớp; TEACHER chỉ xem lớp do mình phụ trách
+  const canViewMembers = auth.user?.role === "ADMIN" || (auth.user?.role === "TEACHER" && c.teacherId === uid);
   const firstLesson = lessonList[0];
   const nextOrder = lessonList.reduce((max, l) => Math.max(max, l.lessonOrder || 0), 0) + 1;
 
@@ -133,8 +136,8 @@ export default function CourseDetailPage() {
 
           />
         )}
+        {canViewMembers && <CourseMembersProgress courseId={courseId} openAuth={openAuth} />}
 
-        {isAdmin && <CourseMembersProgress courseId={courseId} openAuth={openAuth} />}
       </div>
 
       {editingCourse && (
