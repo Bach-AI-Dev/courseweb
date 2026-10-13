@@ -9,7 +9,6 @@ import com.baitapnhom.courseweb.exception.ErrorCode;
 import com.baitapnhom.courseweb.dto.response.EnrollmentResponse;
 import com.baitapnhom.courseweb.dto.response.ApiResponse;
 import com.baitapnhom.courseweb.dto.response.PagedEnrollmentResponse;
-import com.baitapnhom.courseweb.enums.EnrollmentStatus;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -178,12 +177,15 @@ public class EnrollmentController {
     // Admin : xóa dữ liệu đăng ký khóa học của học viên
     @DeleteMapping("/admin/enrollments/{enrollmentId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<String> deleteEnrollment(@PathVariable String enrollmentId) {
+    public ResponseEntity<ApiResponse<Void>> deleteEnrollment(
+            @PathVariable @NotBlank(message = "INVALID_ENROLLMENT_ID") String enrollmentId) {
 
         enrollmentService.deleteEnrollmentById(enrollmentId);
 
-        ApiResponse<String> apiResponse = new ApiResponse<>();
-        apiResponse.setResult("Xóa dữ liệu đăng ký khóa học thành công!");
-        return apiResponse;
+        ApiResponse<Void> apiResponse = new ApiResponse<>();
+        apiResponse.setCode(1000);
+        apiResponse.setMessage("Xóa dữ liệu đăng ký khóa học thành công!");
+
+        return ResponseEntity.ok(apiResponse);
     }
 }

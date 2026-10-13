@@ -19,8 +19,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
-import com.baitapnhom.courseweb.enums.Role;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -39,18 +37,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
 
         httpSecurity.authorizeHttpRequests(request -> request
-                // 1. Cho phép POST các endpoint auth, register...
                 .requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
-
-                // 2. Cho phép mọi người XEM khóa học và danh mục không cần Token
-                //.requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
-
-                // 3. Phân quyền User
-                // .requestMatchers(HttpMethod.GET, "/api/users").hasRole(Role.ADMIN.name())
-                // .requestMatchers(HttpMethod.GET, "/api/users/my-info").authenticated()
-                // .requestMatchers(HttpMethod.GET, "/api/users/{userId}").hasRole(Role.ADMIN.name())
-
-                // 4. Tất cả các request còn lại phải có token xác thực
                 .anyRequest().authenticated());
 
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())

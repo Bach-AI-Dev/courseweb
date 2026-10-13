@@ -62,77 +62,67 @@ public class EnrollmentService {
     public EnrollmentResponse enrollCourse(String studentId, String courseId) {
         logger.info("Student {} attempting to enroll in course {}", studentId, courseId);
         
-        try {
-            // Bước 1: Tìm người dùng theo ID (đóng vai trò là student)
-            User student = userRepository.findById(studentId)
-                .orElseThrow(() -> {
-                    logger.error("User/Student not found: {}", studentId);
-                    return new AppException(ErrorCode.USER_NOT_EXISTED);
-                });
+        // Bước 1: Tìm người dùng theo ID (đóng vai trò là student)
+        User student = userRepository.findById(studentId)
+            .orElseThrow(() -> {
+                logger.error("User/Student not found: {}", studentId);
+                return new AppException(ErrorCode.USER_NOT_EXISTED);
+            });
 
-            // Bước 2: Tìm khóa học
-            Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> {
-                    logger.error("Course not found: {}", courseId);
-                    return new AppException(ErrorCode.COURSE_NOT_FOUND);
-                });
-            
-            // Bước 3: Kiểm tra khóa học có PUBLISHED không
-            if (course.getStatus() == null || course.getStatus() != CourseStatus.PUBLISHED) {
-                logger.warn("Course {} status is {}, cannot enroll", courseId, course.getStatus());
-                throw new AppException(ErrorCode.COURSE_NOT_ACTIVE);
-            }
-            
-            // Bước 4: Kiểm tra giá khóa học hợp lệ
-            if (course.getPrice() == null || course.getPrice().signum() < 0) {
-                logger.error("Invalid course price for course {}: {}", courseId, course.getPrice());
-                throw new AppException(ErrorCode.INVALID_COURSE_PRICE);
-            }
+        // Bước 2: Tìm khóa học
+        Course course = courseRepository.findById(courseId)
+            .orElseThrow(() -> {
+                logger.error("Course not found: {}", courseId);
+                return new AppException(ErrorCode.COURSE_NOT_FOUND);
+            });
 
-            // Bước 5: Xử lý enrollment hiện tại
-            Optional<Enrollment> optionalEnrollment = enrollmentRepository
-                .findByStudentIdAndCourseId(studentId, courseId);
-
-            if (optionalEnrollment.isPresent()) {
-                Enrollment existingEnrollment = optionalEnrollment.get();
-                
-                logger.info("Existing enrollment found with status: {}", existingEnrollment.getStatus());
-
-                switch (existingEnrollment.getStatus()) {
-                    case ACTIVE:
-                        logger.warn("Student {} already enrolled in course {}", studentId, courseId);
-                        throw new AppException(ErrorCode.ALREADY_ENROLLED);
-                        
-                    case COMPLETED:
-                        logger.warn("Student {} already completed course {}", studentId, courseId);
-                        throw new AppException(ErrorCode.COURSE_COMPLETED);
-                        
-                    case CANCELED:
-                        // Kích hoạt lại enrollment đã hủy
-                        existingEnrollment.setStatus(EnrollmentStatus.ACTIVE);
-                        existingEnrollment.setEnrollDate(LocalDateTime.now());
-                        enrollmentRepository.save(existingEnrollment);
-                        logger.info("Reactivated enrollment for student {} in course {}", studentId, courseId);
-                        return mapToResponse(existingEnrollment);
-                }
-            }
-
-            // Bước 6: Tạo enrollment mới với User làm student
-            Enrollment newEnrollment = new Enrollment(student, course, EnrollmentStatus.ACTIVE);
-            newEnrollment = enrollmentRepository.save(newEnrollment);
-
-            logger.info("Successfully enrolled student {} to course {}, enrollment ID: {}", 
-                       studentId, courseId, newEnrollment.getId());
-            return mapToResponse(newEnrollment);
-            
-        } catch (AppException e) {
-            logger.error("Application error during enrollment - Student: {}, Course: {}, Error: {}", 
-                        studentId, courseId, e.getErrorCode());
-            throw e;
-        } catch (Exception e) {
-            logger.error("Unexpected error...", e);
-            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
+        // Bước 3: Kiểm tra khóa học có PUBLISHED không
+        if (course.getStatus() == null || course.getStatus() != CourseStatus.PUBLISHED) {
+            logger.warn("Course {} status is {}, cannot enroll", courseId, course.getStatus());
+            throw new AppException(ErrorCode.COURSE_NOT_ACTIVE);
         }
+
+        // Bước 4: Kiểm tra giá khóa học hợp lệ
+        if (course.getPrice() == null || course.getPrice().signum() < 0) {
+            logger.error("Invalid course price for course {}: {}", courseId, course.getPrice());
+            throw new AppException(ErrorCode.INVALID_COURSE_PRICE);
+        }
+
+        // Bước 5: Xử lý enrollment hiện tại
+        Optional<Enrollment> optionalEnrollment = enrollmentRepository
+            .findByStudentIdAndCourseId(studentId, courseId);
+
+        if (optionalEnrollment.isPresent()) {
+            Enrollment existingEnrollment = optionalEnrollment.get();
+
+            logger.info("Existing enrollment found with status: {}", existingEnrollment.getStatus());
+
+            switch (existingEnrollment.getStatus()) {
+                case ACTIVE:
+                    logger.warn("Student {} already enrolled in course {}", studentId, courseId);
+                    throw new AppException(ErrorCode.ALREADY_ENROLLED);
+
+                case COMPLETED:
+                    logger.warn("Student {} already completed course {}", studentId, courseId);
+                    throw new AppException(ErrorCode.COURSE_COMPLETED);
+
+                case CANCELED:
+                    // Kích hoạt lại enrollment đã hủy
+                    existingEnrollment.setStatus(EnrollmentStatus.ACTIVE);
+                    existingEnrollment.setEnrollDate(LocalDateTime.now());
+                    enrollmentRepository.save(existingEnrollment);
+                    logger.info("Reactivated enrollment for student {} in course {}", studentId, courseId);
+                    return mapToResponse(existingEnrollment);
+            }
+        }
+
+        // Bước 6: Tạo enrollment mới với User làm student
+        Enrollment newEnrollment = new Enrollment(student, course, EnrollmentStatus.ACTIVE);
+        newEnrollment = enrollmentRepository.save(newEnrollment);
+
+        logger.info("Successfully enrolled student {} to course {}, enrollment ID: {}", 
+                   studentId, courseId, newEnrollment.getId());
+        return mapToResponse(newEnrollment);
     }
 
     // Helper method: Chuyển đổi Enrollment entity thành EnrollmentResponse DTO
@@ -155,7 +145,6 @@ public class EnrollmentService {
     public List<EnrollmentResponse> getMyCourses(String studentId) {
         logger.info("Fetching all courses for student {}", studentId);
         
-        try {
             List<Enrollment> enrollments = enrollmentRepository
                 .findByStudentIdOrderByEnrollDateDesc(studentId);
             
@@ -165,10 +154,6 @@ public class EnrollmentService {
                 .map(this::mapToResponse)  // Dùng helper method
                 .collect(Collectors.toList());
                 
-        } catch (Exception e) {
-            logger.error("Unexpected error...", e);
-            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
-        }
     }
 
     // Lấy danh sách khóa học của học viên (có phân trang)
@@ -178,39 +163,33 @@ public class EnrollmentService {
         logger.info("Fetching paginated courses for student {} - page: {}, size: {}", 
                    studentId, page, size);
         
-        try {
-            if (page < 0) page = 0;
-            if (size <= 0) size = 10;
-            if (size > 50) size = 50;
+        if (page < 0) page = 0;
+        if (size <= 0) size = 10;
+        if (size > 50) size = 50;
 
-            // Tạo Pageable object với sort theo enrollDate giảm dần
-            Pageable pageable = PageRequest.of(page, size, Sort.by("enrollDate").descending());
-            
-            // Lấy data từ DB
-            Page<Enrollment> enrollmentPage = enrollmentRepository
-                .findByStudentId(studentId, pageable);
+        // Tạo Pageable object với sort theo enrollDate giảm dần
+        Pageable pageable = PageRequest.of(page, size, Sort.by("enrollDate").descending());
 
-            // Convert entities to DTOs
-            List<EnrollmentResponse> responses = enrollmentPage.getContent().stream()
-                .map(this::mapToResponse)  // Dùng helper method
-                .collect(Collectors.toList());
+        // Lấy data từ DB
+        Page<Enrollment> enrollmentPage = enrollmentRepository
+            .findByStudentId(studentId, pageable);
 
-            logger.info("Returned {} courses on page {} for student {}", 
-                       responses.size(), page, studentId);
+        // Convert entities to DTOs
+        List<EnrollmentResponse> responses = enrollmentPage.getContent().stream()
+            .map(this::mapToResponse)  // Dùng helper method
+            .collect(Collectors.toList());
 
-            // Return paginated response
-            return new PagedEnrollmentResponse(
-                responses,
-                enrollmentPage.getTotalPages(),
-                enrollmentPage.getTotalElements(),
-                page,
-                size
-            );
-            
-        } catch (Exception e) {
-            logger.error("Unexpected error...", e);
-            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
-        }
+        logger.info("Returned {} courses on page {} for student {}", 
+                   responses.size(), page, studentId);
+
+        // Return paginated response
+        return new PagedEnrollmentResponse(
+            responses,
+            enrollmentPage.getTotalPages(),
+            enrollmentPage.getTotalElements(),
+            page,
+            size
+        );
     }
 
     // Kiểm tra xem học viên đã đăng ký khóa học này chưa
@@ -231,65 +210,47 @@ public class EnrollmentService {
     public void cancelEnrollment(String studentId, String courseId) {
         logger.info("Student {} canceling enrollment in course {}", studentId, courseId);
         
-        try {
-            // Tìm enrollment
-            Enrollment enrollment = enrollmentRepository
-                .findByStudentIdAndCourseId(studentId, courseId)
-                .orElseThrow(() -> {
-                    logger.error("Enrollment not found for student {} in course {}", studentId, courseId);
-                    return new AppException(ErrorCode.ENROLLMENT_NOT_FOUND);
-                });
+        // Tìm enrollment
+        Enrollment enrollment = enrollmentRepository
+            .findByStudentIdAndCourseId(studentId, courseId)
+            .orElseThrow(() -> {
+                logger.error("Enrollment not found for student {} in course {}", studentId, courseId);
+                return new AppException(ErrorCode.ENROLLMENT_NOT_FOUND);
+            });
 
-            // Kiểm tra không được hủy khóa hoàn thành
-            if (enrollment.getStatus() == EnrollmentStatus.COMPLETED) {
-                logger.warn("Cannot cancel completed enrollment: {}", enrollment.getId());
-                throw new AppException(ErrorCode.CANNOT_CANCEL_COMPLETED);
-            }
-
-            // Cập nhật trạng thái thành CANCELED
-            enrollment.setStatus(EnrollmentStatus.CANCELED);
-            enrollmentRepository.save(enrollment);
-            
-            logger.info("Successfully canceled enrollment {} for student {}", enrollment.getId(), studentId);
-            
-        } catch (AppException e) {
-            logger.error("Application error during cancellation: {}", e.getErrorCode());
-            throw e;
-        } catch (Exception e) {
-            logger.error("Unexpected error...", e);
-            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
+        // Kiểm tra không được hủy khóa hoàn thành
+        if (enrollment.getStatus() == EnrollmentStatus.COMPLETED) {
+            logger.warn("Cannot cancel completed enrollment: {}", enrollment.getId());
+            throw new AppException(ErrorCode.CANNOT_CANCEL_COMPLETED);
         }
+
+        // Cập nhật trạng thái thành CANCELED
+        enrollment.setStatus(EnrollmentStatus.CANCELED);
+        enrollmentRepository.save(enrollment);
+
+        logger.info("Successfully canceled enrollment {} for student {}", enrollment.getId(), studentId);
     }
 
     // Lấy thông tin chi tiết enrollment theo ID
     @Transactional(readOnly = true)
     public EnrollmentResponse getEnrollmentById(String enrollmentId, String studentId) {
         logger.info("Fetching enrollment {} for student {}", enrollmentId, studentId);
-        
-        try {
-            // Tìm enrollment theo ID
-            Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
-                .orElseThrow(() -> {
-                    logger.error("Enrollment not found: {}", enrollmentId);
-                    return new AppException(ErrorCode.ENROLLMENT_NOT_FOUND);
-                });
+       
+        // Tìm enrollment theo ID
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+            .orElseThrow(() -> {
+                logger.error("Enrollment not found: {}", enrollmentId);
+                return new AppException(ErrorCode.ENROLLMENT_NOT_FOUND);
+            });
 
-            // BẢO MẬT: Sinh viên chỉ có thể xem enrollment của chính họ (so sánh user id)
-            if (!enrollment.getStudent().getId().equals(studentId)) {
-                logger.warn("Unauthorized access to enrollment {} by student {}", enrollmentId, studentId);
-                throw new AppException(ErrorCode.UNAUTHORIZED);
-            }
-
-            logger.info("Successfully retrieved enrollment {}", enrollmentId);
-            return mapToResponse(enrollment);
-            
-        } catch (AppException e) {
-            logger.error("Application error: {}", e.getErrorCode());
-            throw e;
-        } catch (Exception e) {
-            logger.error("Unexpected error...", e);
-            throw new AppException(ErrorCode.UNCATEGORIED_EXISTED, e); 
+        // BẢO MẬT: Sinh viên chỉ có thể xem enrollment của chính họ (so sánh user id)
+        if (!enrollment.getStudent().getId().equals(studentId)) {
+            logger.warn("Unauthorized access to enrollment {} by student {}", enrollmentId, studentId);
+            throw new AppException(ErrorCode.UNAUTHORIZED);
         }
+
+        logger.info("Successfully retrieved enrollment {}", enrollmentId);
+        return mapToResponse(enrollment);
     }
     
     // Lấy danh sách học viên trong 1 khóa học (Teacher/Admin)
@@ -304,14 +265,13 @@ public class EnrollmentService {
     public EnrollmentResponse updateEnrollmentStatus(String enrollmentId, EnrollmentStatus status) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
                 .orElseThrow(() -> new AppException(ErrorCode.ENROLLMENT_NOT_FOUND));
-
+        
         enrollment.setStatus(status);
         Enrollment saved = enrollmentRepository.save(enrollment);
         return mapToResponse(saved);
     }
     
     // Xóa dữ liệu đăng ký thủ công (admin)
-        
     @Transactional
     public void deleteEnrollmentById(String enrollmentId) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
