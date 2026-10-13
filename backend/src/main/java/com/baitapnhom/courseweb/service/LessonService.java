@@ -62,7 +62,7 @@ public class LessonService {
         lessonEntity.setAssignmentUrl(request.getAssignmentUrl());
 
         VideoLessons video = new VideoLessons(); // Tạo 1 video mới
-        video.setUrl(request.getVideoUrl());   // Lấy link video khách gửi
+        video.setUrl(request.getVideoUrl());   // Lấy link video
         video.setDurationSeconds(request.getDuration());
 
         lessonEntity.setVideoLesson(video);
@@ -114,7 +114,7 @@ public class LessonService {
         // 4. Lưu lại vào Database
         Lesson updatedLesson = lessonRepository.save(existingLesson);
 
-        // 5. Đóng gói trả về cho khách (Response)
+        // 5. Đóng gói Response
         LessonResponse response = new LessonResponse();
         response.setId(updatedLesson.getId());
 
